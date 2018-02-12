@@ -20,63 +20,63 @@ News:
 
 ## Summary
 
-- [Installation](https://github.com/Cadene/pretrained-models.pytorch#installation)
-- [Quick examples](https://github.com/Cadene/pretrained-models.pytorch#quick-examples)
-- [Few use cases](https://github.com/Cadene/pretrained-models.pytorch#few-use-cases)
-    - [Compute imagenet logits](https://github.com/Cadene/pretrained-models.pytorch#compute-imagenet-logits)
-    - [Compute imagenet validation metrics](https://github.com/Cadene/pretrained-models.pytorch#compute-imagenet-validation-metrics)
-- [Evaluation on ImageNet](https://github.com/Cadene/pretrained-models.pytorch#evaluation-on-imagenet)
-    - [Accuracy on valset](https://github.com/Cadene/pretrained-models.pytorch#accuracy-on-validation-set)
-    - [Reproducing results](https://github.com/Cadene/pretrained-models.pytorch#reproducing-results)
-- [Documentation](https://github.com/Cadene/pretrained-models.pytorch#documentation)
-    - [Available models](https://github.com/Cadene/pretrained-models.pytorch#available-models)
-        - [AlexNet](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [BNInception](https://github.com/Cadene/pretrained-models.pytorch#bninception)
-        - [DenseNet121](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [DenseNet161](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [DenseNet169](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [DenseNet201](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [DenseNet201](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [DualPathNet68](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks)
-        - [DualPathNet92](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks)
-        - [DualPathNet98](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks)
-        - [DualPathNet107](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks)
-        - [DualPathNet113](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks)
-        - [InceptionResNetV2](https://github.com/Cadene/pretrained-models.pytorch#inception)
-        - [InceptionV3](https://github.com/Cadene/pretrained-models.pytorch#inception)
-        - [InceptionV4](https://github.com/Cadene/pretrained-models.pytorch#inception)
-        - [NASNet-A-Large](https://github.com/Cadene/pretrained-models.pytorch#nasnet)
-        - [ResNeXt101_32x4d](https://github.com/Cadene/pretrained-models.pytorch#resnext)
-        - [ResNeXt101_64x4d](https://github.com/Cadene/pretrained-models.pytorch#resnext)
-        - [ResNet101](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [ResNet152](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [ResNet18](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [ResNet34](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [ResNet50](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [SqueezeNet1_0](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [SqueezeNet1_1](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG11](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG13](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG16](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG19](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG11_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG13_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG16_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [VGG19_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision)
-        - [Xception](https://github.com/Cadene/pretrained-models.pytorch#xception)
-    - [Model API](https://github.com/Cadene/pretrained-models.pytorch#model-api)
-        - [model.input_size](https://github.com/Cadene/pretrained-models.pytorch#modelinput_size)
-        - [model.input_space](https://github.com/Cadene/pretrained-models.pytorch#modelinput_space)
-        - [model.input_range](https://github.com/Cadene/pretrained-models.pytorch#modelinput_range)
-        - [model.mean](https://github.com/Cadene/pretrained-models.pytorch#modelmean)
-        - [model.std](https://github.com/Cadene/pretrained-models.pytorch#modelstd)
-        - [model.features](https://github.com/Cadene/pretrained-models.pytorch#modelfeatures)
-        - [model.logits](https://github.com/Cadene/pretrained-models.pytorch#modellogits)
-        - [model.forward](https://github.com/Cadene/pretrained-models.pytorch#modelforward)
-- [Reproducing porting](https://github.com/Cadene/pretrained-models.pytorch#reproducing)
-    - [ResNet*](https://github.com/Cadene/pretrained-models.pytorch#hand-porting-of-resnet152)
-    - [ResNeXt*](https://github.com/Cadene/pretrained-models.pytorch#automatic-porting-of-resnext)
-    - [Inception*](https://github.com/Cadene/pretrained-models.pytorch#hand-porting-of-inceptionv4-and-inceptionresnetv2)
+- [Installation](https://github.com/alexandonian/pretrained-models.pytorch#installation)
+- [Quick examples](https://github.com/alexandonian/pretrained-models.pytorch#quick-examples)
+- [Few use cases](https://github.com/alexandonian/pretrained-models.pytorch#few-use-cases)
+    - [Compute imagenet logits](https://github.com/alexandonian/pretrained-models.pytorch#compute-imagenet-logits)
+    - [Compute imagenet validation metrics](https://github.com/alexandonian/pretrained-models.pytorch#compute-imagenet-validation-metrics)
+- [Evaluation on ImageNet](https://github.com/alexandonian/pretrained-models.pytorch#evaluation-on-imagenet)
+    - [Accuracy on valset](https://github.com/alexandonian/pretrained-models.pytorch#accuracy-on-validation-set)
+    - [Reproducing results](https://github.com/alexandonian/pretrained-models.pytorch#reproducing-results)
+- [Documentation](https://github.com/alexandonian/pretrained-models.pytorch#documentation)
+    - [Available models](https://github.com/alexandonian/pretrained-models.pytorch#available-models)
+        - [AlexNet](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [BNInception](https://github.com/alexandonian/pretrained-models.pytorch#bninception)
+        - [DenseNet121](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [DenseNet161](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [DenseNet169](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [DenseNet201](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [DenseNet201](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [DualPathNet68](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks)
+        - [DualPathNet92](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks)
+        - [DualPathNet98](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks)
+        - [DualPathNet107](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks)
+        - [DualPathNet113](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks)
+        - [InceptionResNetV2](https://github.com/alexandonian/pretrained-models.pytorch#inception)
+        - [InceptionV3](https://github.com/alexandonian/pretrained-models.pytorch#inception)
+        - [InceptionV4](https://github.com/alexandonian/pretrained-models.pytorch#inception)
+        - [NASNet-A-Large](https://github.com/alexandonian/pretrained-models.pytorch#nasnet)
+        - [ResNeXt101_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext)
+        - [ResNeXt101_64x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext)
+        - [ResNet101](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [ResNet152](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [ResNet18](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [ResNet34](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [ResNet50](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [SqueezeNet1_0](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [SqueezeNet1_1](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG11](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG13](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG16](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG19](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG11_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG13_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG16_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [VGG19_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [Xception](https://github.com/alexandonian/pretrained-models.pytorch#xception)
+    - [Model API](https://github.com/alexandonian/pretrained-models.pytorch#model-api)
+        - [model.input_size](https://github.com/alexandonian/pretrained-models.pytorch#modelinput_size)
+        - [model.input_space](https://github.com/alexandonian/pretrained-models.pytorch#modelinput_space)
+        - [model.input_range](https://github.com/alexandonian/pretrained-models.pytorch#modelinput_range)
+        - [model.mean](https://github.com/alexandonian/pretrained-models.pytorch#modelmean)
+        - [model.std](https://github.com/alexandonian/pretrained-models.pytorch#modelstd)
+        - [model.features](https://github.com/alexandonian/pretrained-models.pytorch#modelfeatures)
+        - [model.logits](https://github.com/alexandonian/pretrained-models.pytorch#modellogits)
+        - [model.forward](https://github.com/alexandonian/pretrained-models.pytorch#modelforward)
+- [Reproducing porting](https://github.com/alexandonian/pretrained-models.pytorch#reproducing)
+    - [ResNet*](https://github.com/alexandonian/pretrained-models.pytorch#hand-porting-of-resnet152)
+    - [ResNeXt*](https://github.com/alexandonian/pretrained-models.pytorch#automatic-porting-of-resnext)
+    - [Inception*](https://github.com/alexandonian/pretrained-models.pytorch#hand-porting-of-inceptionv4-and-inceptionresnetv2)
 
 ## Installation
 
@@ -89,7 +89,7 @@ News:
 
 ### Install from repo
 
-3. `git clone https://github.com/Cadene/pretrained-models.pytorch.git`
+3. `git clone https://github.com/alexandonian/pretrained-models.pytorch.git`
 4. `cd pretrained-models.pytorch`
 5. `python setup.py install`
 
@@ -113,7 +113,7 @@ print(pretrainedmodels.model_names)
 
 ```python
 print(pretrainedmodels.pretrained_settings['nasnetalarge'])
-> {'imagenet': {'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetalarge-a1897284.pth', 'input_space': 'RGB', 'input_size': [3, 331, 331], 'input_range': [0, 1], 'mean': [0.5, 0.5, 0.5], 'std': [0.5, 0.5, 0.5], 'num_classes': 1000}, 'imagenet+background': {'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetalarge-a1897284.pth', 'input_space': 'RGB', 'input_size': [3, 331, 331], 'input_range': [0, 1], 'mean': [0.5, 0.5, 0.5], 'std': [0.5, 0.5, 0.5], 'num_classes': 1001}}
+> {'imagenet': {'url': 'http://data.lip6.fr/alexandonian/pretrainedmodels/nasnetalarge-a1897284.pth', 'input_space': 'RGB', 'input_size': [3, 331, 331], 'input_range': [0, 1], 'mean': [0.5, 0.5, 0.5], 'std': [0.5, 0.5, 0.5], 'num_classes': 1000}, 'imagenet+background': {'url': 'http://data.lip6.fr/alexandonian/pretrainedmodels/nasnetalarge-a1897284.pth', 'input_space': 'RGB', 'input_size': [3, 331, 331], 'input_range': [0, 1], 'mean': [0.5, 0.5, 0.5], 'std': [0.5, 0.5, 0.5], 'num_classes': 1001}}
 ```
 
 - To load a pretrained models from imagenet:
@@ -160,7 +160,7 @@ output_logits = model.logits(output_features) # 1x1000
 
 ### Compute imagenet logits
 
-- See [examples/imagenet_logits.py](https://github.com/Cadene/pretrained-models.pytorch/blob/master/examples/imagenet_logits.py) to compute logits of classes appearance over a single image with a pretrained model on imagenet.
+- See [examples/imagenet_logits.py](https://github.com/alexandonian/pretrained-models.pytorch/blob/master/examples/imagenet_logits.py) to compute logits of classes appearance over a single image with a pretrained model on imagenet.
 
 ```
 $ python examples/imagenet_logits.py -h
@@ -174,7 +174,7 @@ $ python examples/imagenet_logits.py -a nasnetalarge --path_img data/cat.png
 
 ### Compute imagenet evaluation metrics
 
-- See [examples/imagenet_eval.py](https://github.com/Cadene/pretrained-models.pytorch/blob/master/examples/imagenet_eval.py) to evaluate pretrained models on imagenet valset. 
+- See [examples/imagenet_eval.py](https://github.com/alexandonian/pretrained-models.pytorch/blob/master/examples/imagenet_eval.py) to evaluate pretrained models on imagenet valset. 
 
 ```
 $ python examples/imagenet_eval.py /local/common-data/imagenet_2012/images -a nasnetalarge -b 20 -e
@@ -191,47 +191,47 @@ Results were obtained using (center cropped) images of the same size than during
 Model | Version | Acc@1 | Acc@5
 --- | --- | --- | ---
 NASNet-A-Large | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 82.693 | 96.163
-[NASNet-A-Large](https://github.com/Cadene/pretrained-models.pytorch#nasnet) | Our porting | 82.566 | 96.086
+[NASNet-A-Large](https://github.com/alexandonian/pretrained-models.pytorch#nasnet) | Our porting | 82.566 | 96.086
 InceptionResNetV2 | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 80.4 | 95.3
 InceptionV4 | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 80.2 | 95.3
-[InceptionResNetV2](https://github.com/Cadene/pretrained-models.pytorch#inception) | Our porting | 80.170 | 95.234
-[InceptionV4](https://github.com/Cadene/pretrained-models.pytorch#inception) | Our porting | 80.062 | 94.926
-[DualPathNet107_5k](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.746 | 94.684
+[InceptionResNetV2](https://github.com/alexandonian/pretrained-models.pytorch#inception) | Our porting | 80.170 | 95.234
+[InceptionV4](https://github.com/alexandonian/pretrained-models.pytorch#inception) | Our porting | 80.062 | 94.926
+[DualPathNet107_5k](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.746 | 94.684
 ResNeXt101_64x4d | [Torch7](https://github.com/facebookresearch/ResNeXt) | 79.6 | 94.7
-[DualPathNet131](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.432 | 94.574
-[DualPathNet92_5k](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.400 | 94.620
-[DualPathNet98](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.224 | 94.488
-[Xception](https://github.com/Cadene/pretrained-models.pytorch#xception) | [Keras](https://github.com/keras-team/keras/blob/master/keras/applications/xception.py) | 79.000 | 94.500
-[ResNeXt101_64x4d](https://github.com/Cadene/pretrained-models.pytorch#resnext) | Our porting | 78.956 | 94.252
-[Xception](https://github.com/Cadene/pretrained-models.pytorch#xception) | Our porting | 78.888 | 94.292
+[DualPathNet131](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.432 | 94.574
+[DualPathNet92_5k](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.400 | 94.620
+[DualPathNet98](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.224 | 94.488
+[Xception](https://github.com/alexandonian/pretrained-models.pytorch#xception) | [Keras](https://github.com/keras-team/keras/blob/master/keras/applications/xception.py) | 79.000 | 94.500
+[ResNeXt101_64x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext) | Our porting | 78.956 | 94.252
+[Xception](https://github.com/alexandonian/pretrained-models.pytorch#xception) | Our porting | 78.888 | 94.292
 ResNeXt101_32x4d | [Torch7](https://github.com/facebookresearch/ResNeXt) | 78.8 | 94.4
 ResNet152 | [Pytorch](https://github.com/pytorch/vision#models) | 78.428 | 94.110
-[ResNeXt101_32x4d](https://github.com/Cadene/pretrained-models.pytorch#resnext) | Our porting | 78.188 | 93.886
+[ResNeXt101_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext) | Our porting | 78.188 | 93.886
 FBResNet152 | [Torch7](https://github.com/facebook/fb.resnet.torch) | 77.84 | 93.84
-[DenseNet161](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.560 | 93.798
-[ResNet101](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.438 | 93.672
-[FBResNet152](https://github.com/Cadene/pretrained-models.pytorch#facebook-resnet) | Our porting | 77.386 | 93.594
-[InceptionV3](https://github.com/Cadene/pretrained-models.pytorch#inception) | [Pytorch](https://github.com/pytorch/vision#models) | 77.294 | 93.454
-[DenseNet201](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.152 | 93.548
-[DualPathNet68b_5k](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 77.034 | 93.590
-[DenseNet169](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 76.026 | 92.992
-[ResNet50](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 76.002 | 92.980
-[DualPathNet68](https://github.com/Cadene/pretrained-models.pytorch#dualpathnetworks) | Our porting | 75.868 | 92.774
-[DenseNet121](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.646 | 92.136
-[VGG19_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.266 | 92.066
-[ResNet34](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 73.554 | 91.456
-[BNInception](https://github.com/Cadene/pretrained-models.pytorch#bninception) | Our porting | 73.522 | 91.560
-[VGG16_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 73.518 | 91.608
-[VGG19](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 72.080 | 90.822
-[VGG16](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 71.636 | 90.354
-[VGG13_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 71.508 | 90.494
-[VGG11_BN](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 70.452 | 89.818
-[ResNet18](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 70.142 | 89.274
-[VGG13](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 69.662 | 89.264
-[VGG11](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 68.970 | 88.746
-[SqueezeNet1_1](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 58.250 | 80.800
-[SqueezeNet1_0](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 58.108 | 80.428
-[Alexnet](https://github.com/Cadene/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 56.432 | 79.194
+[DenseNet161](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.560 | 93.798
+[ResNet101](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.438 | 93.672
+[FBResNet152](https://github.com/alexandonian/pretrained-models.pytorch#facebook-resnet) | Our porting | 77.386 | 93.594
+[InceptionV3](https://github.com/alexandonian/pretrained-models.pytorch#inception) | [Pytorch](https://github.com/pytorch/vision#models) | 77.294 | 93.454
+[DenseNet201](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.152 | 93.548
+[DualPathNet68b_5k](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 77.034 | 93.590
+[DenseNet169](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 76.026 | 92.992
+[ResNet50](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 76.002 | 92.980
+[DualPathNet68](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 75.868 | 92.774
+[DenseNet121](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.646 | 92.136
+[VGG19_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.266 | 92.066
+[ResNet34](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 73.554 | 91.456
+[BNInception](https://github.com/alexandonian/pretrained-models.pytorch#bninception) | Our porting | 73.522 | 91.560
+[VGG16_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 73.518 | 91.608
+[VGG19](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 72.080 | 90.822
+[VGG16](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 71.636 | 90.354
+[VGG13_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 71.508 | 90.494
+[VGG11_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 70.452 | 89.818
+[ResNet18](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 70.142 | 89.274
+[VGG13](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 69.662 | 89.264
+[VGG11](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 68.970 | 88.746
+[SqueezeNet1_1](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 58.250 | 80.800
+[SqueezeNet1_0](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 58.108 | 80.428
+[Alexnet](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 56.432 | 79.194
 
 Note: the Pytorch version of ResNet152 is not a porting of the Torch7 but has been retrained by facebook.
 
@@ -239,7 +239,7 @@ Beware, the accuracy reported here is not always representative of the transfera
     
 ### Reproducing results
 
-Please see [Compute imagenet validation metrics](https://github.com/Cadene/pretrained-models.pytorch#compute-imagenet-validation-metrics)
+Please see [Compute imagenet validation metrics](https://github.com/alexandonian/pretrained-models.pytorch#compute-imagenet-validation-metrics)
 
 
 ## Documentation
@@ -273,7 +273,7 @@ Source: [TensorFlow Slim repo](https://github.com/tensorflow/models/tree/master/
 
 #### BNInception
 
-Source: [Trained with Caffe](https://github.com/Cadene/tensorflow-model-zoo.torch/pull/2) by [Xiong Yuanjun](http://yjxiong.me)
+Source: [Trained with Caffe](https://github.com/alexandonian/tensorflow-model-zoo.torch/pull/2) by [Xiong Yuanjun](http://yjxiong.me)
 
 - `bninception(num_classes=1000, pretrained='imagenet')`
 
@@ -313,7 +313,7 @@ The porting has been made possible by [T Standley](https://github.com/tstandley/
 
 Source: [Pytorch/Vision repo](https://github.com/pytorch/vision/tree/master/torchvision)
 
-(`inceptionv3` included in [Inception*](https://github.com/Cadene/pretrained-models.pytorch#inception))
+(`inceptionv3` included in [Inception*](https://github.com/alexandonian/pretrained-models.pytorch#inception))
 
 - `resnet18(num_classes=1000, pretrained='imagenet')`
 - `resnet34(num_classes=1000, pretrained='imagenet')`
@@ -488,7 +488,7 @@ https://github.com/clcarwin/convert_torch_to_pytorch
 
 ### Hand porting of NASNet, InceptionV4 and InceptionResNetV2
 
-https://github.com/Cadene/tensorflow-model-zoo.torch
+https://github.com/alexandonian/tensorflow-model-zoo.torch
 
 
 ## Acknowledgement
