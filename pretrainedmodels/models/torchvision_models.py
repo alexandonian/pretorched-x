@@ -32,7 +32,7 @@ model_urls = {
     'densenet121': 'https://download.pytorch.org/models/densenet121-241335ed.pth',
     'densenet169': 'https://download.pytorch.org/models/densenet169-6f0f7f60.pth',
     'densenet201': 'https://download.pytorch.org/models/densenet201-4c113574.pth',
-    'densenet161': 'https://download.pytorch.org/models/densenet161-17b70270.pth',   
+    'densenet161': 'https://download.pytorch.org/models/densenet161-17b70270.pth',
     'inceptionv3': 'https://download.pytorch.org/models/inception_v3_google-1a9a5a14.pth',
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
@@ -52,6 +52,8 @@ model_urls = {
     # 'vgg16_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg16-00b39a1b.pth',
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
+moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/'
+                        'resnet50_moments-fd0c4436.pth')
 
 input_sizes = {}
 means = {}
@@ -82,6 +84,19 @@ for model_name in __all__:
         }
     }
 
+# Add Moments pretrained model.
+pretrained_settings['resnet50'].update({
+    'moments': {
+        'url': moments_resnet50_url,
+        'input_space': 'RGB',
+        'input_size': input_sizes['resnet50'],
+        'input_range': [0, 1],
+        'mean': means['resnet50'],
+        'std': stds['resnet50'],
+        'num_classes': 339,
+    }
+})
+
 # for model_name in ['vgg16', 'vgg19']:
 #     pretrained_settings[model_name]['imagenet_caffe'] = {
 #         'url': model_urls[model_name + '_caffe'],
@@ -92,6 +107,7 @@ for model_name in __all__:
 #         'std': [1., 1., 1.],
 #         'num_classes': 1000
 #     }
+
 
 def load_pretrained(model, num_classes, settings):
     assert num_classes == settings['num_classes'], \
@@ -106,6 +122,7 @@ def load_pretrained(model, num_classes, settings):
 
 #################################################################
 # AlexNet
+
 
 def modify_alexnet(model):
     # Modify attributs
@@ -123,7 +140,7 @@ def modify_alexnet(model):
     def features(self, input):
         x = self._features(input)
         x = x.view(x.size(0), 256 * 6 * 6)
-        x = self.dropout0(x) 
+        x = self.dropout0(x)
         x = self.linear0(x)
         x = self.relu0(x)
         x = self.dropout1(x)
@@ -139,12 +156,13 @@ def modify_alexnet(model):
         x = self.features(input)
         x = self.logits(x)
         return x
-        
+
     # Modify methods
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     return model
+
 
 def alexnet(num_classes=1000, pretrained='imagenet'):
     r"""AlexNet model architecture from the
@@ -160,6 +178,7 @@ def alexnet(num_classes=1000, pretrained='imagenet'):
 
 ###############################################################
 # DenseNets
+
 
 def modify_densenets(model):
     # Modify attributs
@@ -183,6 +202,7 @@ def modify_densenets(model):
     setattr(model.__class__, 'forward', forward)
     return model
 
+
 def densenet121(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-121 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
@@ -193,6 +213,7 @@ def densenet121(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_densenets(model)
     return model
+
 
 def densenet169(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-169 model from
@@ -205,6 +226,7 @@ def densenet169(num_classes=1000, pretrained='imagenet'):
     model = modify_densenets(model)
     return model
 
+
 def densenet201(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-201 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
@@ -215,6 +237,7 @@ def densenet201(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_densenets(model)
     return model
+
 
 def densenet161(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-161 model from
@@ -229,6 +252,7 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
 
 ###############################################################
 # InceptionV3
+
 
 def inceptionv3(num_classes=1000, pretrained='imagenet'):
     r"""Inception v3 model architecture from
@@ -245,33 +269,33 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
 
     def features(self, input):
         # 299 x 299 x 3
-        x = self.Conv2d_1a_3x3(input) # 149 x 149 x 32
-        x = self.Conv2d_2a_3x3(x) # 147 x 147 x 32
-        x = self.Conv2d_2b_3x3(x) # 147 x 147 x 64
-        x = F.max_pool2d(x, kernel_size=3, stride=2) # 73 x 73 x 64
-        x = self.Conv2d_3b_1x1(x) # 73 x 73 x 80
-        x = self.Conv2d_4a_3x3(x) # 71 x 71 x 192
-        x = F.max_pool2d(x, kernel_size=3, stride=2) # 35 x 35 x 192
-        x = self.Mixed_5b(x) # 35 x 35 x 256
-        x = self.Mixed_5c(x) # 35 x 35 x 288
-        x = self.Mixed_5d(x) # 35 x 35 x 288
-        x = self.Mixed_6a(x) # 17 x 17 x 768
-        x = self.Mixed_6b(x) # 17 x 17 x 768
-        x = self.Mixed_6c(x) # 17 x 17 x 768
-        x = self.Mixed_6d(x) # 17 x 17 x 768
-        x = self.Mixed_6e(x) # 17 x 17 x 768
+        x = self.Conv2d_1a_3x3(input)  # 149 x 149 x 32
+        x = self.Conv2d_2a_3x3(x)  # 147 x 147 x 32
+        x = self.Conv2d_2b_3x3(x)  # 147 x 147 x 64
+        x = F.max_pool2d(x, kernel_size=3, stride=2)  # 73 x 73 x 64
+        x = self.Conv2d_3b_1x1(x)  # 73 x 73 x 80
+        x = self.Conv2d_4a_3x3(x)  # 71 x 71 x 192
+        x = F.max_pool2d(x, kernel_size=3, stride=2)  # 35 x 35 x 192
+        x = self.Mixed_5b(x)  # 35 x 35 x 256
+        x = self.Mixed_5c(x)  # 35 x 35 x 288
+        x = self.Mixed_5d(x)  # 35 x 35 x 288
+        x = self.Mixed_6a(x)  # 17 x 17 x 768
+        x = self.Mixed_6b(x)  # 17 x 17 x 768
+        x = self.Mixed_6c(x)  # 17 x 17 x 768
+        x = self.Mixed_6d(x)  # 17 x 17 x 768
+        x = self.Mixed_6e(x)  # 17 x 17 x 768
         if self.training and self.aux_logits:
-            self._out_aux = self.AuxLogits(x) # 17 x 17 x 768
-        x = self.Mixed_7a(x) # 8 x 8 x 1280
-        x = self.Mixed_7b(x) # 8 x 8 x 2048
-        x = self.Mixed_7c(x) # 8 x 8 x 2048
+            self._out_aux = self.AuxLogits(x)  # 17 x 17 x 768
+        x = self.Mixed_7a(x)  # 8 x 8 x 1280
+        x = self.Mixed_7b(x)  # 8 x 8 x 2048
+        x = self.Mixed_7c(x)  # 8 x 8 x 2048
         return x
 
     def logits(self, features):
-        x = F.avg_pool2d(features, kernel_size=8) # 1 x 1 x 2048
-        x = F.dropout(x, training=self.training) # 1 x 1 x 2048
-        x = x.view(x.size(0), -1) # 2048
-        x = self.last_linear(x) # 1000 (num_classes)
+        x = F.avg_pool2d(features, kernel_size=8)  # 1 x 1 x 2048
+        x = F.dropout(x, training=self.training)  # 1 x 1 x 2048
+        x = x.view(x.size(0), -1)  # 2048
+        x = self.last_linear(x)  # 1000 (num_classes)
         if self.training and self.aux_logits:
             aux = self._out_aux
             self._out_aux = None
@@ -282,15 +306,16 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
         x = self.features(input)
         x = self.logits(x)
         return x
-        
+
     # Modify methods
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)  
+    setattr(model.__class__, 'forward', forward)
     return model
 
 ###############################################################
 # ResNets
+
 
 def modify_resnets(model):
     # Modify attributs
@@ -323,53 +348,58 @@ def modify_resnets(model):
     # Modify methods
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)  
+    setattr(model.__class__, 'forward', forward)
     return model
+
 
 def resnet18(num_classes=1000, pretrained='imagenet'):
     """Constructs a ResNet-18 model.
     """
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(pretrained=False, num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['resnet18'][pretrained]
         model = load_pretrained(model, num_classes, settings)
     model = modify_resnets(model)
     return model
 
+
 def resnet34(num_classes=1000, pretrained='imagenet'):
     """Constructs a ResNet-34 model.
     """
-    model = models.resnet34(pretrained=False)
+    model = models.resnet34(pretrained=False, num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['resnet34'][pretrained]
         model = load_pretrained(model, num_classes, settings)
     model = modify_resnets(model)
     return model
 
+
 def resnet50(num_classes=1000, pretrained='imagenet'):
     """Constructs a ResNet-50 model.
     """
-    model = models.resnet50(pretrained=False)
+    model = models.resnet50(pretrained=False, num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['resnet50'][pretrained]
         model = load_pretrained(model, num_classes, settings)
     model = modify_resnets(model)
     return model
 
+
 def resnet101(num_classes=1000, pretrained='imagenet'):
     """Constructs a ResNet-101 model.
     """
-    model = models.resnet101(pretrained=False)
+    model = models.resnet101(pretrained=False, num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['resnet101'][pretrained]
         model = load_pretrained(model, num_classes, settings)
     model = modify_resnets(model)
     return model
 
+
 def resnet152(num_classes=1000, pretrained='imagenet'):
     """Constructs a ResNet-152 model.
     """
-    model = models.resnet152(pretrained=False)
+    model = models.resnet152(pretrained=False, num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['resnet152'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -378,6 +408,7 @@ def resnet152(num_classes=1000, pretrained='imagenet'):
 
 ###############################################################
 # SqueezeNets
+
 
 def modify_squeezenets(model):
     # /!\ Beware squeezenets do not have any last_linear module
@@ -400,11 +431,12 @@ def modify_squeezenets(model):
         x = self.features(input)
         x = self.logits(x)
         return x
-        
+
     # Modify methods
     setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)  
+    setattr(model.__class__, 'forward', forward)
     return model
+
 
 def squeezenet1_0(num_classes=1000, pretrained='imagenet'):
     r"""SqueezeNet model architecture from the `"SqueezeNet: AlexNet-level
@@ -417,6 +449,7 @@ def squeezenet1_0(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_squeezenets(model)
     return model
+
 
 def squeezenet1_1(num_classes=1000, pretrained='imagenet'):
     r"""SqueezeNet 1.1 model from the `official SqueezeNet repo
@@ -433,6 +466,7 @@ def squeezenet1_1(num_classes=1000, pretrained='imagenet'):
 
 ###############################################################
 # VGGs
+
 
 def modify_vggs(model):
     # Modify attributs
@@ -452,7 +486,7 @@ def modify_vggs(model):
         x = x.view(x.size(0), -1)
         x = self.linear0(x)
         x = self.relu0(x)
-        x = self.dropout0(x) 
+        x = self.dropout0(x)
         x = self.linear1(x)
         return x
 
@@ -466,12 +500,13 @@ def modify_vggs(model):
         x = self.features(input)
         x = self.logits(x)
         return x
-        
+
     # Modify methods
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)  
+    setattr(model.__class__, 'forward', forward)
     return model
+
 
 def vgg11(num_classes=1000, pretrained='imagenet'):
     """VGG 11-layer model (configuration "A")
@@ -483,6 +518,7 @@ def vgg11(num_classes=1000, pretrained='imagenet'):
     model = modify_vggs(model)
     return model
 
+
 def vgg11_bn(num_classes=1000, pretrained='imagenet'):
     """VGG 11-layer model (configuration "A") with batch normalization
     """
@@ -492,6 +528,7 @@ def vgg11_bn(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
+
 
 def vgg13(num_classes=1000, pretrained='imagenet'):
     """VGG 13-layer model (configuration "B")
@@ -503,6 +540,7 @@ def vgg13(num_classes=1000, pretrained='imagenet'):
     model = modify_vggs(model)
     return model
 
+
 def vgg13_bn(num_classes=1000, pretrained='imagenet'):
     """VGG 13-layer model (configuration "B") with batch normalization
     """
@@ -512,6 +550,7 @@ def vgg13_bn(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
+
 
 def vgg16(num_classes=1000, pretrained='imagenet'):
     """VGG 16-layer model (configuration "D")
@@ -523,6 +562,7 @@ def vgg16(num_classes=1000, pretrained='imagenet'):
     model = modify_vggs(model)
     return model
 
+
 def vgg16_bn(num_classes=1000, pretrained='imagenet'):
     """VGG 16-layer model (configuration "D") with batch normalization
     """
@@ -533,6 +573,7 @@ def vgg16_bn(num_classes=1000, pretrained='imagenet'):
     model = modify_vggs(model)
     return model
 
+
 def vgg19(num_classes=1000, pretrained='imagenet'):
     """VGG 19-layer model (configuration "E")
     """
@@ -542,6 +583,7 @@ def vgg19(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
+
 
 def vgg19_bn(num_classes=1000, pretrained='imagenet'):
     """VGG 19-layer model (configuration 'E') with batch normalization
