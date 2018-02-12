@@ -377,7 +377,7 @@ class NormalCell(nn.Module):
 class ReductionCell0(nn.Module):
 
     def __init__(self, in_channels_left, out_channels_left, in_channels_right, out_channels_right):
-        super(ReductionCell0, self).__init__() 
+        super(ReductionCell0, self).__init__()
         self.conv_prev_1x1 = nn.Sequential()
         self.conv_prev_1x1.add_module('relu', nn.ReLU())
         self.conv_prev_1x1.add_module('conv', nn.Conv2d(in_channels_left, out_channels_left, 1, stride=1, bias=False))
@@ -593,7 +593,7 @@ class NASNetALarge(nn.Module):
         return x
 
 
-def nasnetalarge(num_classes=1001, pretrained='imagenet'):
+def nasnetalarge(num_classes=1000, pretrained='imagenet'):
     r"""NASNetALarge model architecture from the
     `"NASNet" <https://arxiv.org/abs/1707.07012>`_ paper.
     """
