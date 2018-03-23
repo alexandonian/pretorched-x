@@ -1,5 +1,7 @@
 from .fbresnet import fbresnet152
 
+from .cafferesnet import cafferesnet101
+
 from .bninception import bninception
 
 from .resnext import resnext101_32x4d
@@ -10,6 +12,8 @@ from .inceptionv4 import inceptionv4
 from .inceptionresnetv2 import inceptionresnetv2
 
 from .nasnet import nasnetalarge
+
+from .nasnet_mobile import nasnetamobile
 
 from .torchvision_models import alexnet
 from .torchvision_models import densenet121

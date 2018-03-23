@@ -8,12 +8,14 @@ from .models.utils import model_names
 # to support pretrainedmodels.__dict__['nasnetalarge']
 # but depreciated
 from .models.fbresnet import fbresnet152
+from .models.cafferesnet import cafferesnet101
 from .models.bninception import bninception
 from .models.resnext import resnext101_32x4d
 from .models.resnext import resnext101_64x4d
 from .models.inceptionv4 import inceptionv4
 from .models.inceptionresnetv2 import inceptionresnetv2
 from .models.nasnet import nasnetalarge
+from .models.nasnet_mobile import nasnetamobile
 from .models.torchvision_models import alexnet
 from .models.torchvision_models import densenet121
 from .models.torchvision_models import densenet169
