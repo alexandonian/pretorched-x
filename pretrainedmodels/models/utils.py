@@ -10,6 +10,8 @@ from .dpn import pretrained_settings as dpn_settings
 from .xception import pretrained_settings as xception_settings
 from .senet import pretrained_settings as senet_settings
 from .cafferesnet import pretrained_settings as cafferesnet_settings
+from .pnasnet import pretrained_settings as pnasnet_settings
+from .polynet import pretrained_settings as polynet_settings
 
 all_settings = [
     fbresnet_settings,
@@ -23,7 +25,9 @@ all_settings = [
     dpn_settings,
     xception_settings,
     senet_settings,
-    cafferesnet_settings
+    cafferesnet_settings,
+    pnasnet_settings,
+    polynet_settings
 ]
 
 model_names = []
