@@ -33,7 +33,7 @@ __all__ = ['xception']
 pretrained_settings = {
     'xception': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/xception-b0b7af25.pth',
+            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth',
             'input_space': 'RGB',
             'input_size': [3, 299, 299],
             'input_range': [0, 1],
@@ -202,7 +202,7 @@ class Xception(nn.Module):
 
         x = F.adaptive_avg_pool2d(x, (1, 1))
         x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        x = self.last_linear(x)
         return x
 
     def forward(self, input):

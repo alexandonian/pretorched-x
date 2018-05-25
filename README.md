@@ -6,6 +6,8 @@ The goal of this repo is:
 - to access pretrained ConvNets with a unique interface/API inspired by torchvision.
 
 News:
+- 16/04/2018: [SE-ResNet* and SE-ResNeXt*](https://github.com/hujie-frank/SENet) thanks to [Alex Parinov](https://github.com/creafz)
+- 09/04/2018: [SENet154](https://github.com/hujie-frank/SENet) thanks to [Alex Parinov](https://github.com/creafz)
 - 22/03/2018: CaffeResNet101 (good for localization with FasterRCNN)
 - 21/03/2018: NASNet Mobile thanks to [Veronika Yurchuk](https://github.com/veronikayurchuk) and [Anastasiia](https://github.com/DagnyT)
 - 25/01/2018: DualPathNetworks thanks to [Ross Wightman](https://github.com/rwightman/pytorch-dpn-pretrained), Xception thanks to [T Standley](https://github.com/tstandley/Xception-PyTorch), improved TransformImage API
@@ -13,14 +15,13 @@ News:
 - 12/01/2018: `python setup.py install`
 - 08/12/2017: update data url (/!\ `git pull` is needed)
 - 30/11/2017: improve API (`model.features(input)`, `model.logits(features)`, `model.forward(input)`, `model.last_linear`)
-- 16/11/2017: nasnet-a-large pretrained model ported by T. Durand and R. Cadene
+- 16/11/2017: nasnet-a-large pretrained model ported by T. Durand and R. alexandonian
 - 22/07/2017: torchvision pretrained models
 - 22/07/2017: momentum in inceptionv4 and inceptionresnetv2 to 0.1
 - 17/07/2017: model.input_range attribut
 - 17/07/2017: BNInception pretrained on Imagenet
 
 ## Summary
-
 
 - [Installation](https://github.com/alexandonian/pretrained-models.pytorch#installation)
 - [Quick examples](https://github.com/alexandonian/pretrained-models.pytorch#quick-examples)
@@ -58,6 +59,12 @@ News:
         - [ResNet18](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
         - [ResNet34](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
         - [ResNet50](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
+        - [SENet154](https://github.com/alexandonian/pretrained-models.pytorch#senet)
+        - [SE-ResNet50](https://github.com/alexandonian/pretrained-models.pytorch#senet)
+        - [SE-ResNet101](https://github.com/alexandonian/pretrained-models.pytorch#senet)
+        - [SE-ResNet152](https://github.com/alexandonian/pretrained-models.pytorch#senet)
+        - [SE-ResNeXt50_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#senet)
+        - [SE-ResNeXt101_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#senet)
         - [SqueezeNet1_0](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
         - [SqueezeNet1_1](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
         - [VGG11](https://github.com/alexandonian/pretrained-models.pytorch#torchvision)
@@ -111,7 +118,7 @@ import pretrainedmodels
 
 ```python
 print(pretrainedmodels.model_names)
-> ['fbresnet152', 'bninception', 'resnext101_32x4d', 'resnext101_64x4d', 'inceptionv4', 'inceptionresnetv2', 'alexnet', 'densenet121', 'densenet169', 'densenet201', 'densenet161', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'inceptionv3', 'squeezenet1_0', 'squeezenet1_1', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn', 'vgg19_bn', 'vgg19', 'nasnetalarge', 'nasnetamobile', 'cafferesnet101']
+> ['fbresnet152', 'bninception', 'resnext101_32x4d', 'resnext101_64x4d', 'inceptionv4', 'inceptionresnetv2', 'alexnet', 'densenet121', 'densenet169', 'densenet201', 'densenet161', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'inceptionv3', 'squeezenet1_0', 'squeezenet1_1', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn', 'vgg19_bn', 'vgg19', 'nasnetalarge', 'nasnetamobile', 'cafferesnet101', 'senet154',  'se_resnet50', 'se_resnet101', 'se_resnet152', 'se_resnext50_32x4d', 'se_resnext101_32x4d']
 ```
 
 - To print the available pretrained settings for a chosen model:
@@ -141,7 +148,7 @@ load_img = utils.LoadImage()
 
 # transformations depending on the model
 # rescale, center crop, normalize, and others (ex: ToBGR, ToRange255)
-tf_img = utils.TransformImage(model) 
+tf_img = utils.TransformImage(model)
 
 path_img = 'data/cat.jpg'
 
@@ -174,12 +181,12 @@ $ python examples/imagenet_logits.py -h
 
 ```
 $ python examples/imagenet_logits.py -a nasnetalarge --path_img data/cat.png
-> 'nasnetalarge': data/cat.png' is a 'tiger cat' 
+> 'nasnetalarge': data/cat.png' is a 'tiger cat'
 ```
 
 ### Compute imagenet evaluation metrics
 
-- See [examples/imagenet_eval.py](https://github.com/alexandonian/pretrained-models.pytorch/blob/master/examples/imagenet_eval.py) to evaluate pretrained models on imagenet valset. 
+- See [examples/imagenet_eval.py](https://github.com/alexandonian/pretrained-models.pytorch/blob/master/examples/imagenet_eval.py) to evaluate pretrained models on imagenet valset.
 
 ```
 $ python examples/imagenet_eval.py /local/common-data/imagenet_2012/images -a nasnetalarge -b 20 -e
@@ -195,10 +202,15 @@ Results were obtained using (center cropped) images of the same size than during
 
 Model | Version | Acc@1 | Acc@5
 --- | --- | --- | ---
-NASNet-A-Large | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 82.693 | 96.163
+
+NASNet-A-Large | [Tensorflow](https://github.com/tensorflow/models/tree/master/research/slim) | 82.693 | 96.163
 [NASNet-A-Large](https://github.com/alexandonian/pretrained-models.pytorch#nasnet) | Our porting | 82.566 | 96.086
+SENet154 | [Caffe](https://github.com/hujie-frank/SENet) | 81.32 | 95.53
+[SENet154](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 81.304 | 95.498
 InceptionResNetV2 | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 80.4 | 95.3
 InceptionV4 | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 80.2 | 95.3
+[SE-ResNeXt101_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 80.236 | 95.028
+SE-ResNeXt101_32x4d | [Caffe](https://github.com/hujie-frank/SENet) | 80.19 | 95.04
 [InceptionResNetV2](https://github.com/alexandonian/pretrained-models.pytorch#inception) | Our porting | 80.170 | 95.234
 [InceptionV4](https://github.com/alexandonian/pretrained-models.pytorch#inception) | Our porting | 80.062 | 94.926
 [DualPathNet107_5k](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.746 | 94.684
@@ -206,14 +218,21 @@ ResNeXt101_64x4d | [Torch7](https://github.com/facebookresearch/ResNeXt) | 79.6 
 [DualPathNet131](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.432 | 94.574
 [DualPathNet92_5k](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.400 | 94.620
 [DualPathNet98](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 79.224 | 94.488
+[SE-ResNeXt50_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 79.076 | 94.434
+SE-ResNeXt50_32x4d | [Caffe](https://github.com/hujie-frank/SENet) | 79.03 | 94.46
 [Xception](https://github.com/alexandonian/pretrained-models.pytorch#xception) | [Keras](https://github.com/keras-team/keras/blob/master/keras/applications/xception.py) | 79.000 | 94.500
 [ResNeXt101_64x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext) | Our porting | 78.956 | 94.252
 [Xception](https://github.com/alexandonian/pretrained-models.pytorch#xception) | Our porting | 78.888 | 94.292
 ResNeXt101_32x4d | [Torch7](https://github.com/facebookresearch/ResNeXt) | 78.8 | 94.4
+SE-ResNet152 | [Caffe](https://github.com/hujie-frank/SENet) | 78.66 | 94.46
+[SE-ResNet152](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 78.658 | 94.374
 ResNet152 | [Pytorch](https://github.com/pytorch/vision#models) | 78.428 | 94.110
+[SE-ResNet101](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 78.396 | 94.258
+SE-ResNet101 | [Caffe](https://github.com/hujie-frank/SENet) | 78.25 | 94.28
 [ResNeXt101_32x4d](https://github.com/alexandonian/pretrained-models.pytorch#resnext) | Our porting | 78.188 | 93.886
 FBResNet152 | [Torch7](https://github.com/facebook/fb.resnet.torch) | 77.84 | 93.84
-
+SE-ResNet50 | [Caffe](https://github.com/hujie-frank/SENet) | 77.63 | 93.64
+[SE-ResNet50](https://github.com/alexandonian/pretrained-models.pytorch#senet) | Our porting | 77.636 | 93.752
 [DenseNet161](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.560 | 93.798
 [ResNet101](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 77.438 | 93.672
 [FBResNet152](https://github.com/alexandonian/pretrained-models.pytorch#facebook-resnet) | Our porting | 77.386 | 93.594
@@ -227,7 +246,7 @@ FBResNet152 | [Torch7](https://github.com/facebook/fb.resnet.torch) | 77.84 | 93
 [DualPathNet68](https://github.com/alexandonian/pretrained-models.pytorch#dualpathnetworks) | Our porting | 75.868 | 92.774
 [DenseNet121](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.646 | 92.136
 [VGG19_BN](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 74.266 | 92.066
-NASNet-A-Mobile | [Tensorflow](https://github.com/tensorflow/models/tree/master/slim) | 74.0 | 91.6
+NASNet-A-Mobile | [Tensorflow](https://github.com/tensorflow/models/tree/master/research/slim) | 74.0 | 91.6
 [NASNet-A-Mobile](https://github.com/veronikayurchuk/pretrained-models.pytorch/blob/master/pretrainedmodels/models/nasnet_mobile.py) | Our porting | 74.080 | 91.740
 [ResNet34](https://github.com/alexandonian/pretrained-models.pytorch#torchvision) | [Pytorch](https://github.com/pytorch/vision#models) | 73.554 | 91.456
 [BNInception](https://github.com/alexandonian/pretrained-models.pytorch#bninception) | Our porting | 73.522 | 91.560
@@ -246,7 +265,7 @@ NASNet-A-Mobile | [Tensorflow](https://github.com/tensorflow/models/tree/master/
 Note: the Pytorch version of ResNet152 is not a porting of the Torch7 but has been retrained by facebook.
 
 Beware, the accuracy reported here is not always representative of the transferable capacity of the network on other tasks and datasets. You must try them all! :P
-    
+
 ### Reproducing results
 
 Please see [Compute imagenet validation metrics](https://github.com/alexandonian/pretrained-models.pytorch#compute-imagenet-validation-metrics)
@@ -258,7 +277,7 @@ Please see [Compute imagenet validation metrics](https://github.com/alexandonian
 
 #### NASNet*
 
-Source: [TensorFlow Slim repo](https://github.com/tensorflow/models/tree/master/slim)
+Source: [TensorFlow Slim repo](https://github.com/tensorflow/models/tree/master/research/slim)
 
 - `nasnetalarge(num_classes=1000, pretrained='imagenet')`
 - `nasnetalarge(num_classes=1001, pretrained='imagenet+background')`
@@ -326,6 +345,19 @@ Source: [Keras repo](https://github.com/keras-team/keras/blob/master/keras/appli
 The porting has been made possible by [T Standley](https://github.com/tstandley/Xception-PyTorch).
 
 - `xception(num_classes=1000, pretrained='imagenet')`
+
+
+#### SENet*
+
+Source: [Caffe repo of Jie Hu](https://github.com/hujie-frank/SENet)
+
+- `senet154(num_classes=1000, pretrained='imagenet')`
+- `se_resnet50(num_classes=1000, pretrained='imagenet')`
+- `se_resnet101(num_classes=1000, pretrained='imagenet')`
+- `se_resnet152(num_classes=1000, pretrained='imagenet')`
+- `se_resnext50_32x4d(num_classes=1000, pretrained='imagenet')`
+- `se_resnext101_32x4d(num_classes=1000, pretrained='imagenet')`
+
 
 #### TorchVision
 
@@ -423,7 +455,7 @@ Example when the model is loaded using `fbresnet152`:
 
 ```python
 print(input_224.size())            # (1,3,224,224)
-output = model.features(input_224) 
+output = model.features(input_224)
 print(output.size())               # (1,2048,1,1)
 
 # print(input_448.size())          # (1,3,448,448)
@@ -440,7 +472,7 @@ Method which is used to classify the features from the image.
 Example when the model is loaded using `fbresnet152`:
 
 ```python
-output = model.features(input_224) 
+output = model.features(input_224)
 print(output.size())               # (1,2048, 1, 1)
 output = model.logits(output)
 print(output.size())               # (1,1000)
@@ -467,13 +499,13 @@ print(output.size())      # (1,1000)
 Attribut of type `nn.Linear`. This module is the last one to be called during the forward pass.
 
 - Can be replaced by an adapted `nn.Linear` for fine tuning.
-- Can be replaced by `pretrained.utils.Identity` for features extraction. 
+- Can be replaced by `pretrained.utils.Identity` for features extraction.
 
 Example when the model is loaded using `fbresnet152`:
 
 ```python
 print(input_224.size())            # (1,3,224,224)
-output = model.features(input_224) 
+output = model.features(input_224)
 print(output.size())               # (1,2048,1,1)
 output = model.logits(output)
 print(output.size())               # (1,1000)

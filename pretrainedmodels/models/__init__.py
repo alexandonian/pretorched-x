@@ -45,3 +45,10 @@ from .dpn import dpn131
 from .dpn import dpn107
 
 from .xception import xception
+
+from .senet import senet154
+from .senet import se_resnet50
+from .senet import se_resnet101
+from .senet import se_resnet152
+from .senet import se_resnext50_32x4d
+from .senet import se_resnext101_32x4d
