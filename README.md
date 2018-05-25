@@ -1,9 +1,19 @@
-# Pretrained models for Pytorch (Work in progress)
+# Pretrained image and video models for Pytorch (Work in progress)
 
 The goal of this repo is:
 
 - to help to reproduce research papers results (transfer learning setups for instance),
 - to access pretrained ConvNets with a unique interface/API inspired by torchvision.
+
+**Updates specific to this fork:**
+This repo is my own personal fork of this popular [model zoo](https://github.com/Cadene/pretrained-models.pytorch) for PyTorch. Since my work focuses on action recognition in videos, I plan to accumulate standard model architectures trained on the popular video datasets such as [Moments in Time](http://moments.csail.mit.edu), [Kinetics](https://deepmind.com/research/open-source/open-source-datasets/kinetics/), [Something-Something](https://20bn.com/datasets/something-something), etc., as well models specifically designed for action recognition. For example, you can load ResNet50 pretrained on Moments in Time with the following:
+
+```python
+model_name = 'resnet50'
+model = pretrainedmodels.__dict__[model_name](num_classes=339, pretrained='moments')
+model.eval()
+```
+Not every architecture will be trained on every dataset, but I will do the best I can to include all that I have accumulated. I will try to maintain the same API where appropriate, but may decided to make modifications to specifically handle multi-frame nature of videos.
 
 News:
 - 16/04/2018: [SE-ResNet* and SE-ResNeXt*](https://github.com/hujie-frank/SENet) thanks to [Alex Parinov](https://github.com/creafz)
@@ -15,7 +25,7 @@ News:
 - 12/01/2018: `python setup.py install`
 - 08/12/2017: update data url (/!\ `git pull` is needed)
 - 30/11/2017: improve API (`model.features(input)`, `model.logits(features)`, `model.forward(input)`, `model.last_linear`)
-- 16/11/2017: nasnet-a-large pretrained model ported by T. Durand and R. alexandonian
+- 16/11/2017: nasnet-a-large pretrained model ported by T. Durand and R. Cadene
 - 22/07/2017: torchvision pretrained models
 - 22/07/2017: momentum in inceptionv4 and inceptionresnetv2 to 0.1
 - 17/07/2017: model.input_range attribut
