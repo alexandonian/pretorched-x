@@ -202,7 +202,6 @@ Results were obtained using (center cropped) images of the same size than during
 
 Model | Version | Acc@1 | Acc@5
 --- | --- | --- | ---
-
 NASNet-A-Large | [Tensorflow](https://github.com/tensorflow/models/tree/master/research/slim) | 82.693 | 96.163
 [NASNet-A-Large](https://github.com/alexandonian/pretrained-models.pytorch#nasnet) | Our porting | 82.566 | 96.086
 SENet154 | [Caffe](https://github.com/hujie-frank/SENet) | 81.32 | 95.53
