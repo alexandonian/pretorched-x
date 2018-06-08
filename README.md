@@ -16,6 +16,7 @@ model.eval()
 Not every architecture will be trained on every dataset, but I will do the best I can to include all that I have accumulated. I will try to maintain the same API where appropriate, but may decided to make modifications to specifically handle multi-frame nature of videos.
 
 News:
+- 04/06/2018: [PolyNet](https://github.com/CUHK-MMLAB/polynet) and [PNASNet-5-Large](https://arxiv.org/abs/1712.00559) thanks to [Alex Parinov](https://github.com/creafz)
 - 16/04/2018: [SE-ResNet* and SE-ResNeXt*](https://github.com/hujie-frank/SENet) thanks to [Alex Parinov](https://github.com/creafz)
 - 09/04/2018: [SENet154](https://github.com/hujie-frank/SENet) thanks to [Alex Parinov](https://github.com/creafz)
 - 22/03/2018: CaffeResNet101 (good for localization with FasterRCNN)
