@@ -615,7 +615,7 @@ class NASNetAMobile(nn.Module):
         return x
 
 
-def nasnetamobile(num_classes=1001, pretrained='imagenet'):
+def nasnetamobile(num_classes=1000, pretrained='imagenet'):
     r"""NASNetALarge model architecture from the
     `"NASNet" <https://arxiv.org/abs/1707.07012>`_ paper.
     """

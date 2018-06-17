@@ -368,7 +368,7 @@ class PNASNet5Large(nn.Module):
         return x
 
 
-def pnasnet5large(num_classes=1001, pretrained='imagenet'):
+def pnasnet5large(num_classes=1000, pretrained='imagenet'):
     r"""PNASNet-5 model architecture from the
     `"Progressive Neural Architecture Search"
     <https://arxiv.org/abs/1712.00559>`_ paper.
