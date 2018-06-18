@@ -1,0 +1,8 @@
+__title__ = 'pretorched'
+__description__ = 'PyTorch utilities for neural network research.'
+__url__ = 'https://github.com/alexandonian/pretorched-x'
+__version__ = '0.1.dev1'
+__author__ = 'Alex Andonian'
+__email__ = 'alexandonian@gmail.com'
+__license__ = 'MIT'
+__keywords__ = 'pytorch deep learning pretrained utilities'
