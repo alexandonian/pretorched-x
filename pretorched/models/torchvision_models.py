@@ -637,7 +637,3 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
-
-
-if __name__ == '__main__':
-    model = densenet161(num_classes=365, pretrained='places365')
