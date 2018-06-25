@@ -52,8 +52,10 @@ model_urls = {
     # 'vgg16_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg16-00b39a1b.pth',
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
-moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/'
-                        'resnet50_moments-fd0c4436.pth')
+moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth')
+places365_resnet_urls = {
+    'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
+    'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-33818772.pth'}
 
 input_sizes = {}
 means = {}
@@ -72,6 +74,7 @@ for model_name in ['inceptionv3']:
 pretrained_settings = {}
 
 for model_name in __all__:
+
     pretrained_settings[model_name] = {
         'imagenet': {
             'url': model_urls[model_name],
@@ -96,6 +99,20 @@ pretrained_settings['resnet50'].update({
         'num_classes': 339,
     }
 })
+
+# Add Places 365 pretrained model.
+for model_name, url in places365_resnet_urls.items():
+    pretrained_settings[model_name].update({
+        'places365': {
+            'url': url,
+            'input_space': 'RGB',
+            'input_size': input_sizes[model_name],
+            'input_range': [0, 1],
+            'mean': means[model_name],
+            'std': stds[model_name],
+            'num_classes': 365,
+        }
+    })
 
 # for model_name in ['vgg16', 'vgg19']:
 #     pretrained_settings[model_name]['imagenet_caffe'] = {
@@ -594,3 +611,8 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
+
+
+if __name__ == '__main__':
+    model = resnet18(num_classes=365, pretrained='places365')
+    model = resnet50(num_classes=365, pretrained='places365')
