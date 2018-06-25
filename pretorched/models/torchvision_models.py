@@ -54,6 +54,7 @@ model_urls = {
 }
 moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth')
 places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-6ce45f2c.pth'
+places365_densenet161_url = 'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
     'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-33818772.pth'}
@@ -113,6 +114,17 @@ pretrained_settings['alexnet'].update({
     }
 })
 
+pretrained_settings['densenet161'].update({
+    'places365': {
+        'url': places365_densenet161_url,
+        'input_space': 'RGB',
+        'input_size': input_sizes['densenet161'],
+        'input_range': [0, 1],
+        'mean': means['densenet161'],
+        'std': stds['densenet161'],
+        'num_classes': 365,
+    }
+})
 # Add Places 365 pretrained model.
 for model_name, url in places365_resnet_urls.items():
     pretrained_settings[model_name].update({
@@ -238,7 +250,7 @@ def densenet121(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-121 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
     """
-    model = models.densenet121(pretrained=False)
+    model = models.densenet121(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['densenet121'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -250,7 +262,7 @@ def densenet169(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-169 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
     """
-    model = models.densenet169(pretrained=False)
+    model = models.densenet169(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['densenet169'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -262,7 +274,7 @@ def densenet201(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-201 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
     """
-    model = models.densenet201(pretrained=False)
+    model = models.densenet201(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['densenet201'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -274,7 +286,7 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
     r"""Densenet-161 model from
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
     """
-    model = models.densenet161(pretrained=False)
+    model = models.densenet161(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['densenet161'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -628,4 +640,4 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
 
 
 if __name__ == '__main__':
-    model = alexnet(num_classes=365, pretrained='places365')
+    model = densenet161(num_classes=365, pretrained='places365')
