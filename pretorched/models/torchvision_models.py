@@ -53,6 +53,7 @@ model_urls = {
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
 moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth')
+places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-6ce45f2c.pth'
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
     'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-33818772.pth'}
@@ -100,6 +101,18 @@ pretrained_settings['resnet50'].update({
     }
 })
 
+pretrained_settings['alexnet'].update({
+    'places365': {
+        'url': places365_alexnet_url,
+        'input_space': 'RGB',
+        'input_size': input_sizes['alexnet'],
+        'input_range': [0, 1],
+        'mean': means['alexnet'],
+        'std': stds['alexnet'],
+        'num_classes': 365,
+    }
+})
+
 # Add Places 365 pretrained model.
 for model_name, url in places365_resnet_urls.items():
     pretrained_settings[model_name].update({
@@ -113,6 +126,7 @@ for model_name, url in places365_resnet_urls.items():
             'num_classes': 365,
         }
     })
+
 
 # for model_name in ['vgg16', 'vgg19']:
 #     pretrained_settings[model_name]['imagenet_caffe'] = {
@@ -186,7 +200,7 @@ def alexnet(num_classes=1000, pretrained='imagenet'):
     `"One weird trick..." <https://arxiv.org/abs/1404.5997>`_ paper.
     """
     # https://github.com/pytorch/vision/blob/master/torchvision/models/alexnet.py
-    model = models.alexnet(pretrained=False)
+    model = models.alexnet(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['alexnet'][pretrained]
         model = load_pretrained(model, num_classes, settings)
@@ -614,5 +628,4 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
 
 
 if __name__ == '__main__':
-    model = resnet18(num_classes=365, pretrained='places365')
-    model = resnet50(num_classes=365, pretrained='places365')
+    model = alexnet(num_classes=365, pretrained='places365')
