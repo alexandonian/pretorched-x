@@ -1,113 +1,167 @@
-import math
+import numpy as np
+from operator import itemgetter
+from sklearn.metrics import confusion_matrix
+
 import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-from PIL import Image
-from munch import munchify
-
-class ToSpaceBGR(object):
-
-    def __init__(self, is_bgr):
-        self.is_bgr = is_bgr
-
-    def __call__(self, tensor):
-        if self.is_bgr:
-            new_tensor = tensor.clone()
-            new_tensor[0] = tensor[2]
-            new_tensor[2] = tensor[0]
-            tensor = new_tensor
-        return tensor
+from torch.autograd import Variable
 
 
-class ToRange255(object):
+class cache(object):
+    """Computes attribute value and caches it in the instance.
 
-    def __init__(self, is_255):
-        self.is_255 = is_255
+    This decorator allows you to create a property which can be computed once and
+    accessed many times. Sort of like memoization.
 
-    def __call__(self, tensor):
-        if self.is_255:
-            tensor.mul_(255)
-        return tensor
+    """
 
+    def __init__(self, method, name=None):
+        self.method = method
+        self.name = name or method.__name__
+        self.__doc__ = method.__doc__
 
-class TransformImage(object):
-
-    def __init__(self, opts, scale=0.875, random_crop=False,
-                 random_hflip=False, random_vflip=False,
-                 preserve_aspect_ratio=True):
-        if type(opts) == dict:
-            opts = munchify(opts)
-        self.input_size = opts.input_size
-        self.input_space = opts.input_space
-        self.input_range = opts.input_range
-        self.mean = opts.mean
-        self.std = opts.std
-
-        # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
-        self.scale = scale
-        self.random_crop = random_crop
-        self.random_hflip = random_hflip
-        self.random_vflip = random_vflip
-
-        tfs = []
-        if preserve_aspect_ratio:
-            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
-        else:
-            height = int(self.input_size[1] / self.scale)
-            width = int(self.input_size[2] / self.scale)
-            tfs.append(transforms.Resize((height, width)))
-
-        if random_crop:
-            tfs.append(transforms.RandomCrop(max(self.input_size)))
-        else:
-            tfs.append(transforms.CenterCrop(max(self.input_size)))
-
-        if random_hflip:
-            tfs.append(transforms.RandomHorizontalFlip())
-
-        if random_vflip:
-            tfs.append(transforms.RandomVerticalFlip())
-
-        tfs.append(transforms.ToTensor())
-        tfs.append(ToSpaceBGR(self.input_space=='BGR'))
-        tfs.append(ToRange255(max(self.input_range)==255))
-        tfs.append(transforms.Normalize(mean=self.mean, std=self.std))
-
-        self.tf = transforms.Compose(tfs)
-            
-    def __call__(self, img):
-        tensor = self.tf(img)
-        return tensor
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        value = self.method(obj)
+        setattr(obj, self.name, value)
+        return value
 
 
-class LoadImage(object):
+def lazy_property(fn):
+    """Decorator that makes a property lazy-evaluated."""
+    attr_name = '_' + fn.__name__
 
-    def __init__(self, space='RGB'):
-        self.space = space
-
-    def __call__(self, path_img):
-        with open(path_img, 'rb') as f:
-            with Image.open(f) as img:
-                img = img.convert(self.space)
-        return img
-
-
-class LoadTransformImage(object):
-
-    def __init__(self, model, scale=0.875):
-        self.load = LoadImage()
-        self.tf = TransformImage(model, scale=scale)
-
-    def __call__(self, path_img):
-        img = self.load(path_img)
-        tensor = self.tf(img)
-        return tensor
+    @property
+    def _lazy_property(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _lazy_property
 
 
-class Identity(nn.Module):
+class HTML(object):
+    """Utility functions for generating html."""
 
-    def __init__(self):
-        super(Identity, self).__init__()
+    @staticmethod
+    def head():
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+              <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+              <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            </head>
+            """
 
-    def forward(self, x):
-        return x
+    @staticmethod
+    def element(elem, inner='', id_='', cls_='', attr=''):
+        if id_ != '':
+            id_ = ' id="{}"'.format(id_)
+        if cls_ is not '':
+            cls_ = ' class="{}"'.format(cls_)
+        if attr is not '':
+            attr = ' {}'.format(attr)
+        return ('<{}{}{}{}>{}</{}>'
+                .format(elem, id_, cls_, attr, inner, elem))
+
+    @staticmethod
+    def div(inner='', id_='', cls_='', attr=''):
+        return HTML.element('div', inner, id_, cls_, attr)
+
+    @staticmethod
+    def container(content):
+        return HTML.div(content, cls_='container')
+
+    @staticmethod
+    def ul(li_list, ul_class='', li_class='', li_attr=''):
+        inner = '\n\t'.join(
+            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list])
+        return HTML.element('ul', '\n\t' + inner + '\n', cls_=ul_class)
+
+    @staticmethod
+    def ol(li_list, ol_class='', li_class='', li_attr=''):
+        inner = '\n\t'.join(
+            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list])
+        return HTML.element('ol', '\n\t' + inner + '\n', cls_=ol_class)
+
+    @staticmethod
+    def img(src=''):
+        return HTML.element('img', attr='src="{}"'.format(src))
+
+    @staticmethod
+    def video(src='', preload='auto', onmouseover='this.play();',
+              onmouseout='this.pause();', style=''):
+        return HTML.element('video', attr='src="{}" onmouseover="{}" onmouseout="{}" style="{}"'
+                            .format(src, onmouseover, onmouseout, style))
+
+    @staticmethod
+    def a(inner='', href='', data_toggle=''):
+        return HTML.element('a', inner=inner, attr='href="{}" data-toggle="{}"'.format(href, data_toggle))
+
+    @staticmethod
+    def panel(label, category, li):
+        return HTML.div(cls_='panel panel-default', inner='\n'.join([
+            HTML.div(cls_='panel-heading',
+                     inner=HTML.element('h4', cls_="panel-title",
+                                        inner=HTML.a(data_toggle='collapse', href='#{}'.format(label),
+                                                     inner='{} (n={})'.format(category, len(li))))),
+            HTML.div(id_='{}'.format(label), cls_='panel-collapse collapse',
+                     inner=HTML.ul(HTML.li, ul_class='list-group', li_class='list-group-item', li_attr="style=\"overflow: auto;\""))]))
+
+    @staticmethod
+    def panel_group(html):
+        return HTML.div(cls_='panel-group', inner='\n'.join([
+            HTML.panel(label, ground_truth, predictions)
+            for (label, ground_truth), predictions in html.items()]))
+
+    @staticmethod
+    def format_div(header, im_name, gif_name):
+        html = """
+            <h4>{}</h4>
+            <img style="float: left;" src="{}"/>
+            <img style="float: left;" src="{}"/>
+        """
+        return html.format(header, im_name, gif_name)
+
+
+def get_grad_hook(name):
+    def hook(m, grad_in, grad_out):
+        print((name, grad_out[0].data.abs().mean(), grad_in[0].data.abs().mean()))
+        print((grad_out[0].size()))
+        print((grad_in[0].size()))
+
+        print((grad_out[0]))
+        print((grad_in[0]))
+
+    return hook
+
+
+def softmax(scores):
+    es = np.exp(scores - scores.max(axis=-1)[..., None])
+    return es / es.sum(axis=-1)[..., None]
+
+
+def log_add(log_a, log_b):
+    return log_a + np.log(1 + np.exp(log_b - log_a))
+
+
+def class_accuracy(prediction, label):
+    cf = confusion_matrix(prediction, label)
+    cls_cnt = cf.sum(axis=1)
+    cls_hit = np.diag(cf)
+    cls_acc = cls_hit / cls_cnt.astype(float)
+    mean_cls_acc = cls_acc.mean()
+    return cls_acc, mean_cls_acc
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def sort(arr):
+    """Return indices and sorted array."""
+    return zip(*sorted(enumerate(arr), key=itemgetter(1)))
