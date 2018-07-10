@@ -1,4 +1,4 @@
-from .version import __version__
+from .__version__ import __version__
 
 from . import models
 from . import datasets
@@ -52,3 +52,18 @@ from .models.senet import se_resnext50_32x4d
 from .models.senet import se_resnext101_32x4d
 from .models.pnasnet import pnasnet5large
 from .models.polynet import polynet
+from .models.resnet3D import resnet3d10
+from .models.resnet3D import resnet3d18
+from .models.resnet3D import resnet3d34
+from .models.resnet3D import resnet3d50
+from .models.resnet3D import resnet3d101
+from .models.resnet3D import resnet3d152
+from .models.resnet3D import resnet3d200
+
+from .models.resnext3D import resnext3d10
+from .models.resnext3D import resnext3d18
+from .models.resnext3D import resnext3d34
+from .models.resnext3D import resnext3d50
+from .models.resnext3D import resnext3d101
+from .models.resnext3D import resnext3d152
+from .models.resnext3D import resnext3d200

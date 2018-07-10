@@ -122,6 +122,7 @@ class BasicBlock(nn.Module):
         out += residual
         out = self.relu(out)
 
+        print(out.shape)
         return out
 
 
@@ -160,6 +161,7 @@ class Bottleneck(nn.Module):
 
         out += residual
         out = self.relu(out)
+        print(out.shape)
 
         return out
 
@@ -325,19 +327,21 @@ def resnet3d200(num_classes=400, pretrained='kinetics-400', **kwargs):
 
 if __name__ == '__main__':
     batch_size = 1
-    num_frames = 8
+    num_frames = 48
     num_classes = 400
     img_feature_dim = 512
     frame_size = 224
-    # model = resnet3d18(num_classes=num_classes)
+    model = resnet3d50(num_classes=num_classes, pretrained=None)
+
+    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
+    print(input_var.shape)
+    output = model(input_var)
+    print(output.shape)
+
+    # model = resnet3d18(num_classes=num_classes, pretrained='kinetics-400')
+    # model = resnet3d34()
+    # print(model)
 
     # input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
     # output = model(input_var)
     # print(output.shape)
-
-    # model = resnet3d18(num_classes=num_classes, pretrained='kinetics-400')
-    model = resnet3d34()
-
-    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
-    output = model(input_var)
-    print(output.shape)

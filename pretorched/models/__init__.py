@@ -55,3 +55,19 @@ from .senet import se_resnext101_32x4d
 
 from .pnasnet import pnasnet5large
 from .polynet import polynet
+
+from .resnet3D import resnet3d10
+from .resnet3D import resnet3d18
+from .resnet3D import resnet3d34
+from .resnet3D import resnet3d50
+from .resnet3D import resnet3d101
+from .resnet3D import resnet3d152
+from .resnet3D import resnet3d200
+
+from .resnext3D import resnext3d10
+from .resnext3D import resnext3d18
+from .resnext3D import resnext3d34
+from .resnext3D import resnext3d50
+from .resnext3D import resnext3d101
+from .resnext3D import resnext3d152
+from .resnext3D import resnext3d200

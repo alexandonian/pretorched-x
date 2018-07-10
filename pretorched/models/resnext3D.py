@@ -5,11 +5,14 @@ from torch.autograd import Variable
 import math
 from functools import partial
 
-__all__ = ['ResNeXt', 'resnet50', 'resnet101']
+__all__ = [
+    'ResNeXt3D', 'resnext3d10', 'resnext3d18', 'resnext3d34',
+    'resnext3d50', 'resnext3d101', 'resnext3d152', 'resnext3d200'
+]
 
 
 def conv3x3x3(in_planes, out_planes, stride=1):
-    # 3x3x3 convolution with padding
+    """3x3x3 convolution with padding."""
     return nn.Conv3d(
         in_planes,
         out_planes,
@@ -80,40 +83,20 @@ class ResNeXtBottleneck(nn.Module):
         return out
 
 
-class ResNeXt(nn.Module):
+class ResNeXt3D(nn.Module):
 
-    def __init__(self,
-                 block,
-                 layers,
-                 sample_size,
-                 sample_duration,
-                 shortcut_type='B',
-                 cardinality=32,
-                 num_classes=400):
+    def __init__(self, block, layers, shortcut_type='B', cardinality=32, num_classes=400):
         self.inplanes = 64
-        super(ResNeXt, self).__init__()
-        self.conv1 = nn.Conv3d(
-            3,
-            64,
-            kernel_size=7,
-            stride=(1, 2, 2),
-            padding=(3, 3, 3),
-            bias=False)
+        super(ResNeXt3D, self).__init__()
+        self.conv1 = nn.Conv3d(3, 64, kernel_size=7, stride=(1, 2, 2), padding=(3, 3, 3), bias=False)
         self.bn1 = nn.BatchNorm3d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool3d(kernel_size=(3, 3, 3), stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 128, layers[0], shortcut_type,
-                                       cardinality)
-        self.layer2 = self._make_layer(
-            block, 256, layers[1], shortcut_type, cardinality, stride=2)
-        self.layer3 = self._make_layer(
-            block, 512, layers[2], shortcut_type, cardinality, stride=2)
-        self.layer4 = self._make_layer(
-            block, 1024, layers[3], shortcut_type, cardinality, stride=2)
-        last_duration = int(math.ceil(sample_duration / 16))
-        last_size = int(math.ceil(sample_size / 32))
-        self.avgpool = nn.AvgPool3d(
-            (last_duration, last_size, last_size), stride=1)
+        self.layer1 = self._make_layer(block, 128, layers[0], shortcut_type, cardinality)
+        self.layer2 = self._make_layer(block, 256, layers[1], shortcut_type, cardinality, stride=2)
+        self.layer3 = self._make_layer(block, 512, layers[2], shortcut_type, cardinality, stride=2)
+        self.layer4 = self._make_layer(block, 1024, layers[3], shortcut_type, cardinality, stride=2)
+        self.avgpool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Linear(cardinality * 32 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -123,13 +106,7 @@ class ResNeXt(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-    def _make_layer(self,
-                    block,
-                    planes,
-                    blocks,
-                    shortcut_type,
-                    cardinality,
-                    stride=1):
+    def _make_layer(self, block, planes, blocks, shortcut_type, cardinality, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             if shortcut_type == 'A':
@@ -150,7 +127,7 @@ class ResNeXt(nn.Module):
         layers.append(
             block(self.inplanes, planes, cardinality, stride, downsample))
         self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
+        for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, cardinality))
 
         return nn.Sequential(*layers)
@@ -195,22 +172,43 @@ def get_fine_tuning_parameters(model, ft_begin_index):
     return parameters
 
 
-def resnet50(**kwargs):
-    """Constructs a ResNet-50 model.
-    """
-    model = ResNeXt(ResNeXtBottleneck, [3, 4, 6, 3], **kwargs)
+def resnext3d10(**kwargs):
+    """Constructs a ResNeXt3D-10 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [1, 1, 1, 1], **kwargs)
     return model
 
 
-def resnet101(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNeXt(ResNeXtBottleneck, [3, 4, 23, 3], **kwargs)
+def resnext3d18(**kwargs):
+    """Constructs a ResNeXt3D-18 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [2, 2, 2, 2], **kwargs)
     return model
 
 
-def resnet152(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNeXt(ResNeXtBottleneck, [3, 8, 36, 3], **kwargs)
+def resnext3d34(**kwargs):
+    """Constructs a ResNeXt3D-34 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [3, 4, 6, 3], **kwargs)
+    return model
+
+
+def resnext3d50(**kwargs):
+    """Constructs a ResNeXt3D-50 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [3, 4, 6, 3], **kwargs)
+    return model
+
+
+def resnext3d101(**kwargs):
+    """Constructs a ResNeXt3D-101 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [3, 4, 23, 3], **kwargs)
+    return model
+
+
+def resnext3d152(**kwargs):
+    """Constructs a ResNeXt3D-152 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [3, 8, 36, 3], **kwargs)
+    return model
+
+
+def resnext3d200(**kwargs):
+    """Constructs a ResNeXt3D-200 model."""
+    model = ResNeXt3D(ResNeXtBottleneck, [3, 24, 36, 3], **kwargs)
     return model
