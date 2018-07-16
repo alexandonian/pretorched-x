@@ -9,7 +9,7 @@ __all__ = ['InceptionResNetV2', 'inceptionresnetv2']
 pretrained_settings = {
     'inceptionresnetv2': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/inceptionresnetv2-520b38e4.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/inceptionresnetv2-c2ef1dee.pth',
             'input_space': 'RGB',
             'input_size': [3, 299, 299],
             'input_range': [0, 1],
@@ -18,7 +18,7 @@ pretrained_settings = {
             'num_classes': 1000
         },
         'imagenet+background': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/inceptionresnetv2-520b38e4.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/inceptionresnetv2-c2ef1dee.pth',
             'input_space': 'RGB',
             'input_size': [3, 299, 299],
             'input_range': [0, 1],
@@ -60,7 +60,7 @@ class Mixed_5b(nn.Module):
         self.branch1 = nn.Sequential(
             BasicConv2d(192, 48, kernel_size=1, stride=1),
             BasicConv2d(48, 64, kernel_size=5, stride=1, padding=2)
-        ) 
+        )
 
         self.branch2 = nn.Sequential(
             BasicConv2d(192, 64, kernel_size=1, stride=1),
@@ -120,7 +120,7 @@ class Mixed_6a(nn.Module):
 
     def __init__(self):
         super(Mixed_6a, self).__init__()
-        
+
         self.branch0 = BasicConv2d(320, 384, kernel_size=3, stride=2)
 
         self.branch1 = nn.Sequential(
@@ -171,7 +171,7 @@ class Mixed_7a(nn.Module):
 
     def __init__(self):
         super(Mixed_7a, self).__init__()
-        
+
         self.branch0 = nn.Sequential(
             BasicConv2d(1088, 256, kernel_size=1, stride=1),
             BasicConv2d(256, 384, kernel_size=3, stride=2)
@@ -321,7 +321,7 @@ class InceptionResNetV2(nn.Module):
     def logits(self, features):
         x = self.avgpool_1a(features)
         x = x.view(x.size(0), -1)
-        x = self.last_linear(x) 
+        x = self.last_linear(x)
         return x
 
     def forward(self, input):
@@ -341,17 +341,17 @@ def inceptionresnetv2(num_classes=1000, pretrained='imagenet'):
         # both 'imagenet'&'imagenet+background' are loaded from same parameters
         model = InceptionResNetV2(num_classes=1001)
         model.load_state_dict(model_zoo.load_url(settings['url']))
-        
+
         if pretrained == 'imagenet':
             new_last_linear = nn.Linear(1536, 1000)
             new_last_linear.weight.data = model.last_linear.weight.data[1:]
             new_last_linear.bias.data = model.last_linear.bias.data[1:]
             model.last_linear = new_last_linear
-        
+
         model.input_space = settings['input_space']
         model.input_size = settings['input_size']
         model.input_range = settings['input_range']
-        
+
         model.mean = settings['mean']
         model.std = settings['std']
     else:

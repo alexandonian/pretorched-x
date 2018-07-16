@@ -15,7 +15,7 @@ __all__ = ['SENet', 'senet154', 'se_resnet50', 'se_resnet101', 'se_resnet152',
 pretrained_settings = {
     'senet154': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/senet154-c7b49a05.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/senet154-c7b49a05.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -26,7 +26,7 @@ pretrained_settings = {
     },
     'se_resnet50': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnet50-ce0d4300.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/se_resnet50-8049f9c4.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -37,7 +37,7 @@ pretrained_settings = {
     },
     'se_resnet101': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnet101-7e38fcc6.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/se_resnet101-af4def2b.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -48,7 +48,7 @@ pretrained_settings = {
     },
     'se_resnet152': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnet152-d17c99b7.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/se_resnet152-457c373d.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -59,7 +59,7 @@ pretrained_settings = {
     },
     'se_resnext50_32x4d': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/se_resnext50_32x4d-377ad789.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -70,7 +70,7 @@ pretrained_settings = {
     },
     'se_resnext101_32x4d': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/se_resnext101_32x4d-bcc25309.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],

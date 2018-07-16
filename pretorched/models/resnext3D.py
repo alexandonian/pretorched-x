@@ -1,14 +1,52 @@
+import math
+from functools import partial
+from collections import defaultdict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-import math
-from functools import partial
+
 
 __all__ = [
     'ResNeXt3D', 'resnext3d10', 'resnext3d18', 'resnext3d34',
     'resnext3d50', 'resnext3d101', 'resnext3d152', 'resnext3d200'
 ]
+
+model_urls = {
+    'kinetics-400': defaultdict(lambda: None, {
+        'resnext3d101': 'http://pretorched-x.csail.mit.edu/models/resnext3d101_kinetics-8e57b772.pth',
+    }),
+}
+
+num_classes = {
+    'kinetics-400': 400,
+    'moments': 339,
+}
+
+pretrained_settings = {}
+input_sizes = {}
+means = {}
+stds = {}
+
+for model_name in __all__:
+    input_sizes[model_name] = [3, 224, 224]
+    means[model_name] = [0.485, 0.456, 0.406]
+    stds[model_name] = [0.229, 0.224, 0.225]
+
+for model_name in __all__:
+    for dataset, urls in model_urls.items():
+        pretrained_settings[model_name] = {
+            dataset: {
+                'input_space': 'RGB',
+                'input_range': [0, 1],
+                'url': urls[model_name],
+                'std': stds[model_name],
+                'mean': means[model_name],
+                'num_classes': num_classes[dataset],
+                'input_size': input_sizes[model_name],
+            }
+        }
 
 
 def conv3x3x3(in_planes, out_planes, stride=1):

@@ -7,7 +7,7 @@ from torch.autograd import Variable
 pretrained_settings = {
     'nasnetalarge': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetalarge-a1897284.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/nasnetalarge-82673142.pth',
             'input_space': 'RGB',
             'input_size': [3, 331, 331], # resize 354
             'input_range': [0, 1],
@@ -16,7 +16,7 @@ pretrained_settings = {
             'num_classes': 1000
         },
         'imagenet+background': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetalarge-a1897284.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/nasnetalarge-82673142.pth',
             'input_space': 'RGB',
             'input_size': [3, 331, 331], # resize 354
             'input_range': [0, 1],

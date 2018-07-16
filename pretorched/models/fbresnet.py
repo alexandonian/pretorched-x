@@ -10,7 +10,9 @@ __all__ = ['FBResNet',
 pretrained_settings = {
     'fbresnet152': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/fbresnet152-2e20f6b4.pth',
+            # 'url': 'http://data.lip6.fr/cadene/pretrainedmodels/fbresnet152-2e20f6b4.pth',
+            # 'url': 'http://pretorched-x.csail.mit.edu/models/fbresnet152-2e20f6b4.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/fbresnet152-3ade0e00.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],

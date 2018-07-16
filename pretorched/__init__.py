@@ -2,8 +2,8 @@ from .__version__ import __version__
 
 from . import models
 from . import datasets
-from .models.utils import pretrained_settings
-from .models.utils import model_names
+from .models.settings import pretrained_settings
+from .models.settings import model_names
 
 # to support pretrainedmodels.__dict__['nasnetalarge']
 # but depreciated

@@ -13,6 +13,9 @@ from .cafferesnet import pretrained_settings as cafferesnet_settings
 from .pnasnet import pretrained_settings as pnasnet_settings
 from .polynet import pretrained_settings as polynet_settings
 
+from .resnet3D import pretrained_settings as resnet3d_settings
+from .resnext3D import pretrained_settings as resnext3d_settings
+
 all_settings = [
     fbresnet_settings,
     bninception_settings,
@@ -27,7 +30,9 @@ all_settings = [
     senet_settings,
     cafferesnet_settings,
     pnasnet_settings,
-    polynet_settings
+    polynet_settings,
+    resnet3d_settings,
+    resnext3d_settings,
 ]
 
 model_names = []
@@ -66,7 +71,7 @@ class SizeEstimator(object):
 
     def get_output_sizes(self):
         """Run sample input through each layer to get output sizes."""
-        input_ = Variable(torch.FloatTensor(*self.input_size), volatile=True)
+        input_ = torch.FloatTensor(*self.input_size)
         mods = list(self.model.modules())
         out_sizes = []
         for i in range(1, len(mods)):

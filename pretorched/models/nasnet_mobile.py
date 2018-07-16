@@ -24,7 +24,7 @@ pretrained_settings = {
     'nasnetamobile': {
         'imagenet': {
             #'url': 'https://github.com/veronikayurchuk/pretrained-models.pytorch/releases/download/v1.0/nasnetmobile-7e03cead.pth.tar',
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetamobile-7e03cead.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/nasnetamobile-5d17248c.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224], # resize 256
             'input_range': [0, 1],
@@ -33,7 +33,7 @@ pretrained_settings = {
             'num_classes': 1000
         },
         # 'imagenet+background': {
-        #     # 'url': 'http://data.lip6.fr/cadene/pretrainedmodels/nasnetalarge-a1897284.pth',
+        #     # 'url': 'http://pretorched-x.csail.mit.edu/models/nasnetalarge-a1897284.pth',
         #     'input_space': 'RGB',
         #     'input_size': [3, 224, 224], # resize 256
         #     'input_range': [0, 1],

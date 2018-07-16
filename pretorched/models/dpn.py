@@ -19,7 +19,7 @@ __all__ = ['DPN', 'dpn68', 'dpn68b', 'dpn92', 'dpn98', 'dpn131', 'dpn107']
 pretrained_settings = {
     'dpn68': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn68-66bebafa7.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn68-fc785635.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -30,7 +30,7 @@ pretrained_settings = {
     },
     'dpn68b': {
         'imagenet+5k': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn68b_extra-84854c156.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn68b_extra-32ce864c.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -41,7 +41,7 @@ pretrained_settings = {
     },
     'dpn92': {
         # 'imagenet': {
-        #     'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn68-66bebafa7.pth',
+        #     'url': 'http://pretorched-x.csail.mit.edu/models/dpn68-66bebafa7.pth',
         #     'input_space': 'RGB',
         #     'input_size': [3, 224, 224],
         #     'input_range': [0, 1],
@@ -50,7 +50,7 @@ pretrained_settings = {
         #     'num_classes': 1000
         # },
         'imagenet+5k': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn92_extra-b040e4a9b.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn92_extra-731473e5.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -61,7 +61,7 @@ pretrained_settings = {
     },
     'dpn98': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn98-5b90dec4d.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn98-865a0af1.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -72,7 +72,7 @@ pretrained_settings = {
     },
     'dpn131': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn131-71dfe43e0.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn131-fedf956c.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -83,7 +83,7 @@ pretrained_settings = {
     },
     'dpn107': {
         'imagenet+5k': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/dpn107_extra-1ac7121e2.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/dpn107_extra-6c815f6a.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],

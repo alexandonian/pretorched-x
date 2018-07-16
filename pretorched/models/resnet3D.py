@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.utils.model_zoo as model_zoo
-from torchvision_models import load_pretrained
+from .torchvision_models import load_pretrained
 
 __all__ = [
     'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
@@ -40,6 +40,8 @@ for model_name in __all__:
     stds[model_name] = [0.229, 0.224, 0.225]
 
 for model_name in __all__:
+    if model_name in ['ResNet3D']:
+        pass
     for dataset, urls in model_urls.items():
         pretrained_settings[model_name] = {
             dataset: {
