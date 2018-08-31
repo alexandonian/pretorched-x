@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.utils.model_zoo as model_zoo
-from torchvision_models import load_pretrained
+from .torchvision_models import load_pretrained
 
 __all__ = [
     'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
