@@ -118,6 +118,8 @@ class MobileNetV2(nn.Module):
             nn.Linear(self.last_channel, num_classes),
         )
 
+        self.last_linear = self.classifier[1]
+
         self._initialize_weights()
 
     def forward(self, x):
