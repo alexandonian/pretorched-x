@@ -14,7 +14,7 @@ class _NonLocalBlockND(nn.Module):
         assert dimension in [1, 2, 3]
         assert mode in ['embedded_gaussian', 'gaussian', 'dot_product', 'concatenation']
 
-        # print('Dimension: %d, mode: %s' % (dimension, mode))
+        # print(f'Dimension: {dimension}, mode: {mode}')
 
         self.mode = mode
         self.dimension = dimension
@@ -89,10 +89,10 @@ class _NonLocalBlockND(nn.Module):
                 self.phi = nn.Sequential(self.phi, max_pool(kernel_size=2))
 
     def forward(self, x):
-        '''
+        """
         :param x: (b, c, t, h, w)
         :return:
-        '''
+        """
 
         output = self.operation_function(x)
         return output
@@ -200,27 +200,27 @@ class _NonLocalBlockND(nn.Module):
         return z
 
 
-class NONLocalBlock1D(_NonLocalBlockND):
-    def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian', sub_sample=False, bn_layer=False):
-        super(NONLocalBlock1D, self).__init__(in_channels,
+class NonLocalBlock1D(_NonLocalBlockND):
+    def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian', sub_sample=False, bn_layer=True):
+        super(NonLocalBlock1D, self).__init__(in_channels,
                                               inter_channels=inter_channels,
                                               dimension=1, mode=mode,
                                               sub_sample=sub_sample,
                                               bn_layer=bn_layer)
 
 
-class NONLocalBlock2D(_NonLocalBlockND):
-    def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian', sub_sample=False, bn_layer=False):
-        super(NONLocalBlock2D, self).__init__(in_channels,
+class NonLocalBlock2D(_NonLocalBlockND):
+    def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian', sub_sample=False, bn_layer=True):
+        super(NonLocalBlock2D, self).__init__(in_channels,
                                               inter_channels=inter_channels,
                                               dimension=2, mode=mode,
                                               sub_sample=sub_sample,
                                               bn_layer=bn_layer)
 
 
-class NONLocalBlock3D(_NonLocalBlockND):
-    def __init__(self, in_channels, inter_channels=None, mode='dot_product', sub_sample=False, bn_layer=False):
-        super(NONLocalBlock3D, self).__init__(in_channels,
+class NonLocalBlock3D(_NonLocalBlockND):
+    def __init__(self, in_channels, inter_channels=None, mode='embedded_gaussian', sub_sample=False, bn_layer=True):
+        super(NonLocalBlock3D, self).__init__(in_channels,
                                               inter_channels=inter_channels,
                                               dimension=3, mode=mode,
                                               sub_sample=sub_sample,
@@ -237,13 +237,13 @@ class MNISTNonLocalNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2),
 
-            NONLocalBlock2D(in_channels=32),
+            NonLocalBlock2D(in_channels=32),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2),
 
-            NONLocalBlock2D(in_channels=64),
+            NonLocalBlock2D(in_channels=64),
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
@@ -283,7 +283,9 @@ def downsample_basic_block(x, planes, stride):
         out.size(4)).zero_()
     if isinstance(out.data, torch.cuda.FloatTensor):
         zero_pads = zero_pads.cuda()
-    out = Variable(torch.cat([out.data, zero_pads], dim=1))
+        zero_pads.cuda()
+    out = torch.cat([out, zero_pads], dim=1)
+    # out = Variable(torch.cat([out.data, zero_pads], dim=1))
     return out
 
 
@@ -291,16 +293,20 @@ class NonLocalBasicBlock(nn.Module):
     expansion = 1
     Conv3d = staticmethod(conv3x3x3)
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, nonlocal_layer=False):
         super(NonLocalBasicBlock, self).__init__()
         self.conv1 = self.Conv3d(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm3d(planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = self.Conv3d(planes, planes)
         self.bn2 = nn.BatchNorm3d(planes)
-        self.nonlocalblock = NONLocalBlock3D(planes)
-        self.downsample = downsample
+
         self.stride = stride
+        self.downsample = downsample
+        self.nonlocal_layer = nonlocal_layer
+
+        if nonlocal_layer:
+            self.nonlocalblock = NonLocalBlock3D(planes)
 
     def forward(self, x):
         residual = x
@@ -317,7 +323,9 @@ class NonLocalBasicBlock(nn.Module):
 
         out += residual
         out = self.relu(out)
-        out = self.nonlocalblock(out)
+
+        if self.nonlocal_layer:
+            out = self.nonlocalblock(out)
 
         return out
 
@@ -326,7 +334,7 @@ class NonLocalBottleneck(nn.Module):
     expansion = 4
     Conv3d = nn.Conv3d
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, nonlocal_layer=False):
         super(NonLocalBottleneck, self).__init__()
         self.conv1 = self.Conv3d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm3d(planes)
@@ -335,9 +343,13 @@ class NonLocalBottleneck(nn.Module):
         self.conv3 = self.Conv3d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm3d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        self.nonlocalblock = NONLocalBlock3D(planes * 4)
-        self.downsample = downsample
+
         self.stride = stride
+        self.downsample = downsample
+        self.nonlocal_layer = nonlocal_layer
+
+        if nonlocal_layer:
+            self.nonlocalblock = NonLocalBlock3D(planes * 4)
 
     def forward(self, x):
         residual = x
@@ -358,7 +370,9 @@ class NonLocalBottleneck(nn.Module):
 
         out += residual
         out = self.relu(out)
-        out = self.nonlocalblock(out)
+
+        if self.nonlocal_layer:
+            out = self.nonlocalblock(out)
 
         return out
 
@@ -370,7 +384,8 @@ class NonLocalResNet3D(nn.Module):
     def __init__(self,
                  block,
                  layers,
-                 shortcut_type='B',
+                 nonlocal_layers,
+                 shortcut_type='A',
                  num_classes=339):
         self.inplanes = 64
         super().__init__()
@@ -378,10 +393,10 @@ class NonLocalResNet3D(nn.Module):
         self.bn1 = nn.BatchNorm3d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool3d(kernel_size=(3, 3, 3), stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0], shortcut_type)
-        self.layer2 = self._make_layer(block, 128, layers[1], shortcut_type, stride=2)
-        self.layer3 = self._make_layer(block, 256, layers[2], shortcut_type, stride=2)
-        self.layer4 = self._make_layer(block, 512, layers[3], shortcut_type, stride=2)
+        self.layer1 = self._make_layer(block, 64, layers[0], nonlocal_layers[0], shortcut_type)
+        self.layer2 = self._make_layer(block, 128, layers[1], nonlocal_layers[1], shortcut_type, stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], nonlocal_layers[2], shortcut_type, stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], nonlocal_layers[3], shortcut_type, stride=2)
         self.avgpool = nn.AdaptiveAvgPool3d(1)
         self.last_linear = nn.Linear(512 * block.expansion, num_classes)
 
@@ -395,7 +410,7 @@ class NonLocalResNet3D(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, blocks, shortcut_type, stride=1):
+    def _make_layer(self, block, planes, blocks, nonlocal_blocks, shortcut_type, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             if shortcut_type == 'A':
@@ -410,13 +425,20 @@ class NonLocalResNet3D(nn.Module):
                         planes * block.expansion,
                         kernel_size=1,
                         stride=stride,
-                        bias=False), nn.BatchNorm3d(planes * block.expansion))
+                        bias=False),
+                    nn.BatchNorm3d(planes * block.expansion))
+
+        nonlocal_freq = blocks // nonlocal_blocks if nonlocal_blocks != 0 else -1
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample))
-        self.inplanes = planes * block.expansion
-        for _ in range(1, blocks):
-            layers.append(block(self.inplanes, planes))
+        for i in range(0, blocks):
+            layers.append(block(self.inplanes, planes, stride=stride, downsample=downsample,
+                                nonlocal_layer=(i % nonlocal_freq == 0 and nonlocal_freq > 0)))
+            if i == 0:
+                stride = 1
+                downsample = None
+                self.inplanes = planes * block.expansion
+
         return nn.Sequential(*layers)
 
     def features(self, x):
@@ -485,10 +507,15 @@ def nonlocalresnet3d34(**kwargs):
     return model
 
 
-def nonlocalresnet3d50(**kwargs):
+def nonlocalresnet3d50(num_classes=339, num_nonlocal_blocks=5, pretrained='moments', **kwargs):
     """Constructs a NonLocalResNet3D-50 model.
     """
-    model = NonLocalResNet3D(NonLocalBottleneck, [3, 4, 6, 3], **kwargs)
+    if num_nonlocal_blocks == 5:
+        nonlocal_blocks = [0, 2, 3, 0]
+    elif num_nonlocal_blocks == 10:
+        nonlocal_blocks = [0, 4, 6, 0]
+
+    model = NonLocalResNet3D(NonLocalBottleneck, [3, 4, 6, 3], nonlocal_blocks, **kwargs)
     return model
 
 
@@ -515,35 +542,51 @@ def nonlocalresnet3d200(**kwargs):
 
 if __name__ == '__main__':
     batch_size = 2
-    num_frames = 8
-    num_classes = 174
+    num_frames = 2
+    num_classes = 339
     img_feature_dim = 512
     frame_size = 224
-    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224)).cuda()
+    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
+    # input_var = torch.randn(batch_size, 3, num_frames, 224, 224)
 
-    model = nonlocalresnet3d(num_classes=num_classes).cuda()
+    model = nonlocalresnet3d50(num_classes=num_classes)
+    print(model)
+    # model = torch.nn.DataParallel(model).cuda()
+    # print(model)
+    # print(model.layer1)
+    # print('===========')
+    # print(model.layer2)
+    # print('===========')
+    # print(model.layer3)
+    # print('===========')
+    # print(model.layer4)
+
     output = model(input_var)
     print(output.shape)
-    model.cpu()
-    del model
-
-    model = nonlocalresnet3d18(num_classes=num_classes).cuda()
+    model = nonlocalresnet3d50(num_classes=num_classes, num_nonlocal_blocks=10)
+    print(model)
     output = model(input_var)
     print(output.shape)
-    model.cpu()
-    del model
+    # model.cpu()
+    # del model
 
-    model = nonlocalresnet3d34(num_classes=num_classes).cuda()
-    output = model(input_var)
-    print(output.shape)
-    model.cpu()
-    del model
+    # model = nonlocalresnet3d(num_classes=num_classes).cuda()
+    # output = model(input_var)
+    # print(output.shape)
+    # model.cpu()
+    # del model
 
-    model = nonlocalresnet3d50(num_classes=num_classes).cuda()
-    output = model(input_var)
-    print(output.shape)
-    model.cpu()
-    del model
+    # model = nonlocalresnet3d18(num_classes=num_classes).cuda()
+    # output = model(input_var)
+    # print(output.shape)
+    # model.cpu()
+    # del model
+
+    # model = nonlocalresnet3d34(num_classes=num_classes).cuda()
+    # output = model(input_var)
+    # print(output.shape)
+    # model.cpu()
+    # del model
 
     # model = nonlocalresnet3d101(num_classes=num_classes).cuda()
     # output = model(input_var)
@@ -562,8 +605,6 @@ if __name__ == '__main__':
     # print(output.shape)
     # model.cpu()
     # del model
-
-
 
     # mode_list = ['concatenation', 'embedded_gaussian', 'gaussian', 'dot_product', ]
 

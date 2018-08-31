@@ -124,7 +124,6 @@ class BasicBlock(nn.Module):
         out += residual
         out = self.relu(out)
 
-        print(out.shape)
         return out
 
 
@@ -163,7 +162,6 @@ class Bottleneck(nn.Module):
 
         out += residual
         out = self.relu(out)
-        print(out.shape)
 
         return out
 
