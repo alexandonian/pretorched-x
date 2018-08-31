@@ -7,7 +7,7 @@ from .torchvision_models import load_pretrained
 pretrained_settings = {
     'mobilenetv2': {
         'imagenet': {
-            'url': 'http://pretorched-x.csail.mit.edu/models/mobilenetv2-599d5212.pth',
+            'url': 'http://pretorched-x.csail.mit.edu/models/mobilenetv2-b190fe5f.pth',
             'input_space': 'RGB',
             'input_size': [3, 224, 224],
             'input_range': [0, 1],
@@ -113,19 +113,16 @@ class MobileNetV2(nn.Module):
         self.features = nn.Sequential(*self.features)
 
         # building classifier
-        self.classifier = nn.Sequential(
-            nn.Dropout(0.2),
-            nn.Linear(self.last_channel, num_classes),
-        )
-
-        self.last_linear = self.classifier[1]
+        self.dropout = nn.Dropout(0.2)
+        self.last_linear = nn.Linear(self.last_channel, num_classes)
 
         self._initialize_weights()
 
     def forward(self, x):
         x = self.features(x)
         x = x.mean(3).mean(2)
-        x = self.classifier(x)
+        x = self.dropout(x)
+        x = self.last_linear(x)
         return x
 
     def _initialize_weights(self):
