@@ -2,7 +2,7 @@ import math
 
 import torch.nn as nn
 
-from torchvision_models import load_pretrained
+from .torchvision_models import load_pretrained
 
 pretrained_settings = {
     'mobilenetv2': {
