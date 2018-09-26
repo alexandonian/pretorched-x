@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.utils.model_zoo as model_zoo
-from .torchvision_models import load_pretrained
+from .torchvision_models import load_pretrained, modify_resnets
 
 __all__ = [
     'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
@@ -243,6 +243,7 @@ def get_fine_tuning_parameters(model, ft_begin_index):
 def resnet3d10(**kwargs):
     """Constructs a ResNet3D-10 model."""
     model = ResNet3D(BasicBlock, [1, 1, 1, 1], **kwargs)
+    model = modify_resnets(model)
     return model
 
 
@@ -253,6 +254,7 @@ def resnet3d18(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **
     if pretrained is not None:
         settings = pretrained_settings['resnet3d18'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
@@ -263,6 +265,7 @@ def resnet3d34(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **
     if pretrained is not None:
         settings = pretrained_settings['resnet3d34'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
@@ -272,6 +275,7 @@ def resnet3d50(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d50'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
@@ -281,6 +285,7 @@ def resnet3d101(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d101'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
@@ -290,6 +295,7 @@ def resnet3d152(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d152'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
@@ -299,6 +305,7 @@ def resnet3d200(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d200'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
     return model
 
 
