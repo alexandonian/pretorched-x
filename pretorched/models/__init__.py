@@ -71,3 +71,5 @@ from .resnext3D import resnext3d50
 from .resnext3D import resnext3d101
 from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
+
+from .utils import Identity

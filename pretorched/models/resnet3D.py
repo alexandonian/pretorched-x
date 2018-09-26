@@ -11,25 +11,25 @@ from .torchvision_models import load_pretrained
 
 __all__ = [
     'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
-    'resnet3d50', 'resnet3d101', 'resnet3d152', 'resnet3d200'
+    'resnet3d50', 'resnet3d101', 'resnet3d152', 'resnet3d200',
 ]
 
 model_urls = {
     'kinetics-400': defaultdict(lambda: None, {
         'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-b5673e4a.pth',
         'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-133ec9c4.pth',
-        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-bd7d15a4.pth',
+        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-aad059c9.pth',
         'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-a6ddd22a.pth',
         'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-8ae08d3f.pth',
     }),
+    'moments': defaultdict(lambda: None, {
+        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-22f4fe61.pth',
+    }),
 }
 
-num_classes = {
-    'kinetics-400': 400,
-    'moments': 339,
-}
+num_classes = {'kinetics-400': 400, 'moments': 339}
 
-pretrained_settings = {}
+pretrained_settings = defaultdict(dict)
 input_sizes = {}
 means = {}
 stds = {}
@@ -41,45 +41,24 @@ for model_name in __all__:
 
 for model_name in __all__:
     if model_name in ['ResNet3D']:
-        pass
+        continue
     for dataset, urls in model_urls.items():
-        pretrained_settings[model_name] = {
-            dataset: {
-                'input_space': 'RGB',
-                'input_range': [0, 1],
-                'url': urls[model_name],
-                'std': stds[model_name],
-                'mean': means[model_name],
-                'num_classes': num_classes[dataset],
-                'input_size': input_sizes[model_name],
-            }
+        pretrained_settings[model_name][dataset] = {
+            'input_space': 'RGB',
+            'input_range': [0, 1],
+            'url': urls[model_name],
+            'std': stds[model_name],
+            'mean': means[model_name],
+            'num_classes': num_classes[dataset],
+            'input_size': input_sizes[model_name],
         }
-
-# pretrained_settings = {
-#     'resnet3d50': {
-#         'kinetics-400': {
-#             # 'url': 'http://visiongpu23.csail.mit.edu/scratch/aandonia/.torch/models/resnet3d50_kinetics-bd7d15a4.pth',
-#             'url': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-bd7d15a4.pth',
-#             'input_space': 'RGB',
-#             'input_size': [3, 224, 224],
-#             'input_range': [0, 1],
-#             'mean': [0.485, 0.456, 0.406],
-#             'std': [0.229, 0.224, 0.225],
-#             'num_classes': 400
-#         },
-#     },
-# }
 
 
 def conv3x3x3(in_planes, out_planes, stride=1):
     """3x3x3 convolution with padding."""
     return nn.Conv3d(
-        in_planes,
-        out_planes,
-        kernel_size=3,
-        stride=stride,
-        padding=1,
-        bias=False)
+        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
+    )
 
 
 def downsample_basic_block(x, planes, stride):
@@ -123,7 +102,6 @@ class BasicBlock(nn.Module):
 
         out += residual
         out = self.relu(out)
-
         return out
 
 
@@ -162,7 +140,6 @@ class Bottleneck(nn.Module):
 
         out += residual
         out = self.relu(out)
-
         return out
 
 
@@ -170,11 +147,7 @@ class ResNet3D(nn.Module):
 
     Conv3d = nn.Conv3d
 
-    def __init__(self,
-                 block,
-                 layers,
-                 shortcut_type='B',
-                 num_classes=339):
+    def __init__(self, block, layers, shortcut_type='B', num_classes=339):
         self.inplanes = 64
         super(ResNet3D, self).__init__()
         self.conv1 = self.Conv3d(3, 64, kernel_size=7, stride=(1, 2, 2), padding=(3, 3, 3), bias=False)
@@ -197,7 +170,8 @@ class ResNet3D(nn.Module):
                 downsample = partial(
                     downsample_basic_block,
                     planes=planes * block.expansion,
-                    stride=stride)
+                    stride=stride,
+                )
             else:
                 downsample = nn.Sequential(
                     self.Conv3d(
@@ -205,7 +179,10 @@ class ResNet3D(nn.Module):
                         planes * block.expansion,
                         kernel_size=1,
                         stride=stride,
-                        bias=False), nn.BatchNorm3d(planes * block.expansion))
+                        bias=False,
+                    ),
+                    nn.BatchNorm3d(planes * block.expansion),
+                )
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample))
@@ -328,20 +305,12 @@ def resnet3d200(num_classes=400, pretrained='kinetics-400', **kwargs):
 if __name__ == '__main__':
     batch_size = 1
     num_frames = 48
-    num_classes = 400
+    num_classes = 339
     img_feature_dim = 512
     frame_size = 224
-    model = resnet3d50(num_classes=num_classes, pretrained=None)
+    model = resnet3d50(num_classes=num_classes, pretrained='moments')
 
-    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
+    input_var = torch.randn(batch_size, 3, num_frames, 224, 224)
     print(input_var.shape)
     output = model(input_var)
     print(output.shape)
-
-    # model = resnet3d18(num_classes=num_classes, pretrained='kinetics-400')
-    # model = resnet3d34()
-    # print(model)
-
-    # input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
-    # output = model(input_var)
-    # print(output.shape)

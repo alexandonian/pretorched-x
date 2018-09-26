@@ -120,3 +120,12 @@ class SizeEstimator(object):
 
         total_megabytes = (total / 8) / (1024**2)
         return total_megabytes, total
+
+
+class Identity(torch.nn.Module):
+
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, x):
+        return x
