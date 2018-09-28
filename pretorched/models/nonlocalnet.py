@@ -94,7 +94,8 @@ class _NonLocalBlockND(nn.Module):
         :return:
         """
 
-        output = self.operation_function(x)
+        func = getattr(self, f'_{self.mode}')
+        output = func(x)
         return output
 
     def _embedded_gaussian(self, x):
@@ -546,12 +547,11 @@ if __name__ == '__main__':
     num_classes = 339
     img_feature_dim = 512
     frame_size = 224
-    input_var = torch.autograd.Variable(torch.randn(batch_size, 3, num_frames, 224, 224))
-    # input_var = torch.randn(batch_size, 3, num_frames, 224, 224)
+    input_var = torch.randn(batch_size, 3, num_frames, 224, 224)
 
     model = nonlocalresnet3d50(num_classes=num_classes)
     print(model)
-    # model = torch.nn.DataParallel(model).cuda()
+    model = torch.nn.DataParallel(model).cuda()
     # print(model)
     # print(model.layer1)
     # print('===========')
