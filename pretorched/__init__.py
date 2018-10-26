@@ -68,4 +68,9 @@ from .models.resnext3D import resnext3d101
 from .models.resnext3D import resnext3d152
 from .models.resnext3D import resnext3d200
 
+from .models.nonlocalnet import nonlocalresnet3d18
+from .models.nonlocalnet import nonlocalresnet3d34
+from .models.nonlocalnet import nonlocalresnet3d50
+from .models.nonlocalnet import nonlocalresnet3d101
+
 from .models.mobilenet import mobilenetv2

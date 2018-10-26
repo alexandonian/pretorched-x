@@ -1,9 +1,51 @@
 from functools import partial
+from collections import defaultdict
 
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.autograd import Variable
+import torch.utils.model_zoo as model_zoo
+
+__all__ = ['nonlocalresnet3d50']
+
+model_urls = {
+    'kinetics-400': defaultdict(lambda: None, {
+        'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-b5673e4a.pth',
+        'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-133ec9c4.pth',
+        'nonlocalresnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-aad059c9.pth',
+        'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-a6ddd22a.pth',
+        'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-8ae08d3f.pth',
+    }),
+    'moments': defaultdict(lambda: None, {
+        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-22f4fe61.pth',
+    }),
+}
+
+num_classes = {'kinetics-400': 400, 'moments': 339}
+
+pretrained_settings = defaultdict(dict)
+input_sizes = {}
+means = {}
+stds = {}
+
+for model_name in __all__:
+    input_sizes[model_name] = [3, 224, 224]
+    means[model_name] = [0.485, 0.456, 0.406]
+    stds[model_name] = [0.229, 0.224, 0.225]
+
+for model_name in __all__:
+    if model_name in ['ResNet3D']:
+        continue
+    for dataset, urls in model_urls.items():
+        pretrained_settings[model_name][dataset] = {
+            'input_space': 'RGB',
+            'input_range': [0, 1],
+            'url': urls[model_name],
+            'std': stds[model_name],
+            'mean': means[model_name],
+            'num_classes': num_classes[dataset],
+            'input_size': input_sizes[model_name],
+        }
 
 
 class _NonLocalBlockND(nn.Module):
@@ -508,7 +550,7 @@ def nonlocalresnet3d34(**kwargs):
     return model
 
 
-def nonlocalresnet3d50(num_classes=339, num_nonlocal_blocks=5, pretrained='moments', **kwargs):
+def nonlocalresnet3d50(num_classes=339, num_nonlocal_blocks=5, pretrained='kinetics-400', **kwargs):
     """Constructs a NonLocalResNet3D-50 model.
     """
     if num_nonlocal_blocks == 5:
@@ -517,6 +559,14 @@ def nonlocalresnet3d50(num_classes=339, num_nonlocal_blocks=5, pretrained='momen
         nonlocal_blocks = [0, 4, 6, 0]
 
     model = NonLocalResNet3D(NonLocalBottleneck, [3, 4, 6, 3], nonlocal_blocks, **kwargs)
+    if pretrained is not None:
+        settings = pretrained_settings['nonlocalresnet3d50'][pretrained]
+        model.load_state_dict(model_zoo.load_url(settings['url']), strict=False)
+        model.input_space = settings['input_space']
+        model.input_size = settings['input_size']
+        model.input_range = settings['input_range']
+        model.mean = settings['mean']
+        model.std = settings['std']
     return model
 
 
