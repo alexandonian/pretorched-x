@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, division, absolute_import
 import re
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
@@ -30,10 +31,10 @@ __all__ = [
 
 model_urls = {
     'alexnet': 'https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth',
-    'densenet121': 'https://download.pytorch.org/models/densenet121-a639ec97.pth',
-    'densenet169': 'https://download.pytorch.org/models/densenet169-b2777c0a.pth',
-    'densenet201': 'https://download.pytorch.org/models/densenet201-c1103571.pth',
-    'densenet161': 'https://download.pytorch.org/models/densenet161-8d451a50.pth',
+    'densenet121': 'https://download.pytorch.org/models/densenet121-241335ed.pth',
+    'densenet169': 'https://download.pytorch.org/models/densenet169-6f0f7f60.pth',
+    'densenet201': 'https://download.pytorch.org/models/densenet201-4c113574.pth',
+    'densenet161': 'https://download.pytorch.org/models/densenet161-17b70270.pth',
     'inceptionv3': 'https://download.pytorch.org/models/inception_v3_google-1a9a5a14.pth',
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
@@ -404,9 +405,9 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
         return x
 
     # Modify methods
-    setattr(model.__class__, 'features', features)
-    setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)
+    model.features = types.MethodType(features, model)
+    model.logits = types.MethodType(logits, model)
+    model.forward = types.MethodType(forward, model)
     return model
 
 ###############################################################
@@ -442,9 +443,9 @@ def modify_resnets(model):
         return x
 
     # Modify methods
-    setattr(model.__class__, 'features', features)
-    setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)
+    model.features = types.MethodType(features, model)
+    model.logits = types.MethodType(logits, model)
+    model.forward = types.MethodType(forward, model)
     return model
 
 
@@ -529,8 +530,8 @@ def modify_squeezenets(model):
         return x
 
     # Modify methods
-    setattr(model.__class__, 'logits', logits)
-    setattr(model.__class__, 'forward', forward)
+    model.logits = types.MethodType(logits, model)
+    model.forward = types.MethodType(forward, model)
     return model
 
 

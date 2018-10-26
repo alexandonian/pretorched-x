@@ -1,3 +1,4 @@
+from __future__ import print_function, division, absolute_import
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
@@ -338,8 +339,8 @@ def inceptionv4(num_classes=1000, pretrained='imagenet'):
 TEST
 Run this code with:
 ```
-cd $HOME/pretrained-models.pytorch
-python -m pretrainedmodels.inceptionv4
+cd $HOME/pretorched-x
+python -m pretorched.inceptionv4
 ```
 '''
 if __name__ == '__main__':
