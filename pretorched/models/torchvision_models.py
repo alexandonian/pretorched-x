@@ -58,7 +58,7 @@ places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places
 places365_densenet161_url = 'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
-    'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-33818772.pth'}
+    'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-a570fcfc.pth'}
 
 input_sizes = {}
 means = {}
