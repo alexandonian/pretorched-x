@@ -2,6 +2,7 @@ from .__version__ import __version__
 
 from . import models
 from . import datasets
+from . import transforms
 from .models.settings import pretrained_settings
 from .models.settings import model_names
 
@@ -60,6 +61,8 @@ from .models.resnet3D import resnet3d101
 from .models.resnet3D import resnet3d152
 from .models.resnet3D import resnet3d200
 
+from .models.resnet3D import resneti3d50
+
 from .models.resnext3D import resnext3d10
 from .models.resnext3D import resnext3d18
 from .models.resnext3D import resnext3d34
@@ -74,3 +77,5 @@ from .models.nonlocalnet import nonlocalresnet3d50
 from .models.nonlocalnet import nonlocalresnet3d101
 
 from .models.mobilenet import mobilenetv2
+
+from .models.soundnet import soundnet8

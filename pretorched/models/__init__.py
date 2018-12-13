@@ -61,6 +61,7 @@ from .resnet3D import resnet3d10
 from .resnet3D import resnet3d18
 from .resnet3D import resnet3d34
 from .resnet3D import resnet3d50
+from .resnet3D import resneti3d50
 from .resnet3D import resnet3d101
 from .resnet3D import resnet3d152
 from .resnet3D import resnet3d200
@@ -72,5 +73,7 @@ from .resnext3D import resnext3d50
 from .resnext3D import resnext3d101
 from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
+
+from .soundnet import soundnet8
 
 from .utils import Identity

@@ -6,8 +6,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-import torch.utils.model_zoo as model_zoo
-from .torchvision_models import load_pretrained, modify_resnets
+from . import torchvision_models
+from .torchvision_models import load_pretrained, inflate_pretrained, modify_resnets
+
 
 __all__ = [
     'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
@@ -23,7 +24,8 @@ model_urls = {
         'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-8ae08d3f.pth',
     }),
     'moments': defaultdict(lambda: None, {
-        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-22f4fe61.pth',
+        #'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-779b8700.pth',
+        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-6eb53860.pth',
     }),
 }
 
@@ -123,7 +125,6 @@ class Bottleneck(nn.Module):
 
     def forward(self, x):
         residual = x
-
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -205,7 +206,6 @@ class ResNet3D(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -305,6 +305,16 @@ def resnet3d200(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d200'][pretrained]
         model = load_pretrained(model, num_classes, settings)
+    model = modify_resnets(model)
+    return model
+
+
+def resneti3d50(num_classes=400, pretrained='moments', **kwargs):
+    """Constructs a ResNet3D-50 model."""
+    model = ResNet3D(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet50'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
     model = modify_resnets(model)
     return model
 

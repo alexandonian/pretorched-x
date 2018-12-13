@@ -2,6 +2,7 @@
 
 from __future__ import print_function, division, absolute_import
 import re
+import types
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 import torch.nn.functional as F
@@ -55,7 +56,7 @@ model_urls = {
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
 moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth')
-places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-6ce45f2c.pth'
+places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-0c3a7b83.pth'
 places365_densenet161_url = 'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
@@ -164,6 +165,31 @@ def load_pretrained(model, num_classes, settings):
     model.mean = settings['mean']
     model.std = settings['std']
     return model
+
+
+def inflate_pretrained(model, num_classes, settings):
+
+    def inflate(shape, w, dim=2):
+        return w.unsqueeze(dim).expand(shape)
+
+    assert num_classes == settings['num_classes'], \
+        "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
+    ws = model.state_dict()
+    weights = model_zoo.load_url(settings['url'])
+    for x in weights:
+        for y in ws:
+            if x == y:
+                if weights[x].shape != ws[y].shape:
+                    n = weights[x].unsqueeze(2).expand_as(ws[y])
+                    weights[x] = n
+    model.load_state_dict(weights)
+    model.input_space = settings['input_space']
+    model.input_size = settings['input_size']
+    model.input_range = settings['input_range']
+    model.mean = settings['mean']
+    model.std = settings['std']
+    return model
+
 
 #################################################################
 # AlexNet
@@ -443,9 +469,15 @@ def modify_resnets(model):
         return x
 
     # Modify methods
-    model.features = types.MethodType(features, model)
-    model.logits = types.MethodType(logits, model)
-    model.forward = types.MethodType(forward, model)
+    setattr(model.__class__, 'features', features)
+    setattr(model.__class__, 'logits', logits)
+    setattr(model.__class__, 'forward', forward)
+    # model.features = types.MethodType(features, model)
+    # model.logits = types.MethodType(logits, model)
+    # model.forward = types.MethodType(forward, model)
+    # model.features = types.MethodType(features, model)
+    # model.logits = types.MethodType(logits, model)
+    # model.forward = types.MethodType(forward, model)
     return model
 
 
