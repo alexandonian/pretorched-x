@@ -1,9 +1,3 @@
-"""Implement SlowFast networks for video recognition [1].
-
-[1] https://arxiv.org/pdf/1812.03982.pdf
-
-TODO: Train and Upload model weights.
-"""
 import torch
 import torch.nn as nn
 
@@ -191,9 +185,10 @@ class Slow(nn.Module):
 class SlowOnly(Slow):
 
     def __init__(self, block=Bottleneck, layers=[2, 2, 2, 2],
-                 num_classes=400, dropout=0.5):
+                 num_classes=400, dropout=0.5, slow_stride=16):
         nn.Module.__init__(self)
         self.inplanes = 64
+        self.slow_stride = slow_stride
         self._make_layers(block, layers)
         self.dropout = nn.Dropout(dropout)
         self.last_linear = nn.Linear(self.inplanes, num_classes)
@@ -226,7 +221,7 @@ class SlowOnly(Slow):
         return nn.Sequential(*layers)
 
     def input_transform(self, input):
-        return input[:, :, ::16, :, :]
+        return input[:, :, ::self.slow_stride, :, :]
 
     def forward(self, input):
         x = self.input_transform(input)
@@ -344,8 +339,9 @@ class Fast(nn.Module):
 
 class FastOnly(Fast):
     def __init__(self, block=Bottleneck, layers=[2, 2, 2, 2],
-                 classifier=False, num_classes=400, dropout=0.5):
+                 num_classes=400, dropout=0.5, fast_stride=2):
         super().__init__(block=block, layers=layers)
+        self.fast_stride = fast_stride
         self.dropout = nn.Dropout(dropout)
         self.last_linear = nn.Linear(self.inplanes, num_classes)
 
@@ -353,7 +349,7 @@ class FastOnly(Fast):
         return None
 
     def input_transform(self, input):
-        return input[:, :, ::2, :, :]
+        return input[:, :, ::self.fast_stride, :, :]
 
     def forward(self, input):
         x = self.input_transform(input)
@@ -380,8 +376,10 @@ class SlowFast(nn.Module):
     """
 
     def __init__(self, block=Bottleneck, layers=[2, 2, 2, 2], num_classes=400,
-                 dropout=0.5):
+                 dropout=0.5, slow_stride=16, fast_stride=2):
         super().__init__()
+        self.slow_stride = slow_stride
+        self.fast_stride = fast_stride
         self.expansion = 4 if issubclass(block, Bottleneck) else 1
         self.slow = Slow(block=block, layers=layers)
         self.fast = Fast(block=block, layers=layers)
@@ -390,8 +388,8 @@ class SlowFast(nn.Module):
                                      num_classes, bias=False)
 
     def forward(self, input):
-        fast, lateral = self.fast(input[:, :, ::2, :, :])
-        slow = self.slow(input[:, :, ::16, :, :], lateral)
+        fast, lateral = self.fast(input[:, :, ::self.fast_stride, :, :])
+        slow = self.slow(input[:, :, ::self.slow_stride, :, :], lateral)
         x = torch.cat([slow, fast], dim=1)
         x = self.dropout(x)
         x = self.last_linear(x)
