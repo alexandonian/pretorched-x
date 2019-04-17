@@ -79,3 +79,5 @@ from .models.nonlocalnet import nonlocalresnet3d101
 from .models.mobilenet import mobilenetv2
 
 from .models.soundnet import soundnet8
+
+from .models import slowfast
