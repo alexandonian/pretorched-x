@@ -1,9 +1,12 @@
+import os
+import shutil
+import hashlib
+
 import numpy as np
 from operator import itemgetter
 from sklearn.metrics import confusion_matrix
 
 import torch
-from torch.autograd import Variable
 
 
 class cache(object):
@@ -87,8 +90,8 @@ class HTML(object):
         return HTML.element('ol', '\n\t' + inner + '\n', cls_=ol_class)
 
     @staticmethod
-    def img(src=''):
-        return HTML.element('img', attr='src="{}"'.format(src))
+    def img(src='', style=''):
+        return HTML.element('img', attr='src="{}"; style="{}";'.format(src, style))
 
     @staticmethod
     def video(src='', preload='auto', onmouseover='this.play();',
@@ -99,6 +102,10 @@ class HTML(object):
     @staticmethod
     def a(inner='', href='', data_toggle=''):
         return HTML.element('a', inner=inner, attr='href="{}" data-toggle="{}"'.format(href, data_toggle))
+
+    @staticmethod
+    def p(inner=''):
+        return HTML.element('p', inner=inner)
 
     @staticmethod
     def panel(label, category, li):
@@ -165,3 +172,32 @@ def chunks(l, n):
 def sort(arr):
     """Return indices and sorted array."""
     return zip(*sorted(enumerate(arr), key=itemgetter(1)))
+
+
+def format_checkpoint(ckpt_file):
+    pth_file = ckpt_file.replace('.tar', '')
+    pth_file += '.pth' if not pth_file.endswith('.pth') else ''
+    checkpoint = torch.load(ckpt_file, map_location=lambda storage, loc: storage)
+    print(checkpoint.keys())
+    state_dict = {k.replace('module.', ''): v for k, v in checkpoint['state_dict'].items()}
+    torch.save(state_dict, pth_file)
+    hashval = hashsha256(pth_file)[:8]
+    name, ext = os.path.splitext(pth_file)
+    hashed_pth_file = name + f'-{hashval}' + ext
+    print(f'Copying {pth_file} to {hashed_pth_file}')
+    shutil.copyfile(pth_file, hashed_pth_file)
+
+
+def hashsha256(filename):
+    hashfunc = hashlib.sha256()
+    with open(filename, "rb") as f:
+        # Read and update hash string value in blocks of 4K
+        for byte_block in iter(lambda: f.read(4096), b""):
+            hashfunc.update(byte_block)
+    return hashfunc.hexdigest()
+
+
+def format_tar(tar_file, ext='.tar.gz'):
+    hashval = hashsha256(tar_file)[:8]
+    fname = tar_file.replace(ext, f'-{hashval}' + ext)
+    os.rename(tar_file, fname)
