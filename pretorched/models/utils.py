@@ -85,3 +85,34 @@ class Identity(torch.nn.Module):
 
     def forward(self, x):
         return x
+
+
+def hook_sizes(model, inputs, verbose=True):
+
+    # Hook the output sizes.
+    sizes = []
+
+    def hook_output_size(module, input, output):
+        sizes.append(output.shape)
+
+    # Get modules and register forward hooks.
+    names, mods = zip(*[(name, p) for name, p in model.named_modules()
+                        if list(p.parameters()) and (not p._modules)])
+    for m in mods:
+        m.register_forward_hook(hook_output_size)
+
+    # Make forward pass.
+    with torch.no_grad():
+        output = model(*inputs)
+
+    # Display output, if desired.
+    if verbose:
+        max_len = max(max([len(n) for n in names]), len('Input'))
+
+        for i, input in enumerate(inputs):
+            print(f'Input {i:<{max_len}} has shape: {input.shape}')
+
+        for name, s in zip(names, sizes):
+            print(f'Layer {name:<{max_len}} has shape: {s}')
+
+    return output, names, sizes
