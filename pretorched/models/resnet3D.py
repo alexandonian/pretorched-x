@@ -17,14 +17,13 @@ __all__ = [
 
 model_urls = {
     'kinetics-400': defaultdict(lambda: None, {
-        'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-b5673e4a.pth',
-        'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-133ec9c4.pth',
+        'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-e9f44270.pth',
+        'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-7fed38dd.pth',
         'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-aad059c9.pth',
-        'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-a6ddd22a.pth',
-        'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-8ae08d3f.pth',
+        'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-8d4c9d63.pth',
+        'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-575c47e2.pth',
     }),
     'moments': defaultdict(lambda: None, {
-        #'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-779b8700.pth',
         'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-6eb53860.pth',
     }),
 }
