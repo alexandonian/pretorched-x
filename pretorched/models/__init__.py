@@ -74,6 +74,13 @@ from .resnext3D import resnext3d101
 from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
 
+from .mxresnet import mxresnet18
+from .mxresnet import mxresnet34
+from .mxresnet import mxresnet50
+from .mxresnet import mxresnet50
+from .mxresnet import mxresnet101
+from .mxresnet import mxresnet152
+
 from .soundnet import soundnet8
 from .memnet import memnet
 
