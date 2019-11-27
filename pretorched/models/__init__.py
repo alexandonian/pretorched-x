@@ -75,5 +75,6 @@ from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
 
 from .soundnet import soundnet8
+from .memnet import memnet
 
 from .utils import Identity
