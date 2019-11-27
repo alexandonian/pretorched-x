@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import hashlib
 
@@ -201,3 +202,13 @@ def format_tar(tar_file, ext='.tar.gz'):
     hashval = hashsha256(tar_file)[:8]
     fname = tar_file.replace(ext, f'-{hashval}' + ext)
     os.rename(tar_file, fname)
+
+
+def format_hash(pth_file, ext='.pth'):
+    hashval = hashsha256(pth_file)[:8]
+    if torch.hub.HASH_REGEX.search(pth_file):
+        fname = re.sub(torch.hub.HASH_REGEX, f'-{hashval}.', pth_file)
+    else:
+        fname = pth_file.replace(ext, f'-{hashval}' + ext)
+    print(f'Copying {pth_file} to {fname}')
+    shutil.copyfile(pth_file, fname)
