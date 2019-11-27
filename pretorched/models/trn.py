@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
-import pretrainedmodels
+import pretorched
 
 pretrained_settings = {
     'trn': {
@@ -207,7 +207,7 @@ class TRN(nn.Module):
         self.frame_bottleneck_dim = frame_bottleneck_dim
 
         num_pc = 1000 if pretrained == 'imagenet' else 339
-        self.base_model = pretrainedmodels.__dict__[arch](num_pc, pretrained)
+        self.base_model = pretorched.__dict__[arch](num_pc, pretrained)
         self.frame_feature_dim = self.base_model.last_linear.in_features
         self.base_model.last_linear = torch.nn.Dropout(self.dropout)
         self.std = self.base_model.std
