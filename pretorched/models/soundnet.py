@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchaudio
 
 
 class BranchedSoundNet(nn.Module):
@@ -88,16 +87,3 @@ def soundnet8(num_classes=1000, pretrained='imagenet'):
     state_dict = torch.load('soundnet8.pth')
     model.load_state_dict(state_dict, strict=False)
     return model
-
-
-if __name__ == '__main__':
-    model = soundnet8()
-    mp3 = '/data/vision/oliva/scratch/moments_sound/arresting/yt-yZELmDfkw_w_93.mp3'
-    sound, sample_rate = torchaudio.load(mp3)
-    input = sound.t().unsqueeze(0)
-    out = model(input)
-    # mp3 = '/data/vision/oliva/scratch/moments_sound/arresting/yt-_zmxpXejMNs_122.mp3'
-    # sound, sample_rate = torchaudio.load(mp3)
-    # sound = sound[:sound.size(0)//2]
-    # sound = torch.cat([sound, sound])
-    # sound = torch.cat([sound, sound])

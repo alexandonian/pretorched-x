@@ -55,9 +55,10 @@ model_urls = {
     # 'vgg16_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg16-00b39a1b.pth',
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
-moments_resnet50_url = ('http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth')
+moments_resnet50_url = 'http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth'
 places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-0c3a7b83.pth'
 places365_densenet161_url = 'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
+places365_inceptionv3_url = 'http://pretorched-x.csail.mit.edu/models/inceptionv3_places365-87312459.pth'
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
     'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-a570fcfc.pth'}
@@ -102,6 +103,18 @@ pretrained_settings['resnet50'].update({
         'mean': means['resnet50'],
         'std': stds['resnet50'],
         'num_classes': 339,
+    }
+})
+
+pretrained_settings['inceptionv3'].update({
+    'places365': {
+        'url': places365_inceptionv3_url,
+        'input_space': 'RGB',
+        'input_size': input_sizes['inceptionv3'],
+        'input_range': [0, 1],
+        'mean': means['inceptionv3'],
+        'std': stds['inceptionv3'],
+        'num_classes': 365
     }
 })
 
@@ -381,7 +394,7 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
     r"""Inception v3 model architecture from
     `"Rethinking the Inception Architecture for Computer Vision" <http://arxiv.org/abs/1512.00567>`_.
     """
-    model = models.inception_v3(pretrained=False)
+    model = models.inception_v3(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
         settings = pretrained_settings['inceptionv3'][pretrained]
         model = load_pretrained(model, num_classes, settings)
