@@ -1,6 +1,18 @@
+from collections import defaultdict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils import model_zoo
+
+__all__ = [
+    'BranchedSoundNet', 'SoundNet', 'soundnet8'
+]
+
+model_urls = {
+    'imagenet': defaultdict(lambda: None, {
+        'soundnet8': 'http://pretorched-x.csail.mit.edu/models/soundnet8-8f784005.pth',
+    })}
 
 
 class BranchedSoundNet(nn.Module):
@@ -20,7 +32,7 @@ class BranchedSoundNet(nn.Module):
         self.conv8_2 = nn.Conv1d(1024, 401, 8, stride=2, padding=0)
         self.last_linear1 = nn.Linear(262000, 1000)
         self.last_linear2 = nn.Linear(105062, 365)
-        self.flatten = Flatten()
+        self.flatten = nn.Flatten()
 
     def forward(self, input_wav):
         x = self.pool1(F.relu(nn.BatchNorm1d(16)(self.conv1(input_wav))))
@@ -55,7 +67,7 @@ class SoundNet(nn.Module):
         self.conv7 = nn.Conv1d(512, 1024, 4, stride=2, padding=2)
         self.conv8 = nn.Conv1d(1024, 1000, 8, stride=2, padding=0)
         self.last_linear = nn.Linear(feature_dim, num_classes)
-        self.flatten = Flatten()
+        self.flatten = nn.Flatten()
         self.fdim = feature_dim
 
     def features(self, x):
@@ -76,14 +88,9 @@ class SoundNet(nn.Module):
                             (x[..., -self.fdim:],)]).mean(0)
 
 
-class Flatten(nn.Module):
-    def forward(self, x):
-        return x.view(x.size(0), -1)
-
-
 def soundnet8(num_classes=1000, pretrained='imagenet'):
-    model = SoundNet()
-    # TODO: Handle loading state_dict through url.
-    state_dict = torch.load('soundnet8.pth')
-    model.load_state_dict(state_dict, strict=False)
+    model = SoundNet(num_classes=num_classes)
+    if pretrained is not None:
+        url = model_urls[pretrained]['soundnet8']
+        model.load_state_dict(model_zoo.load_url(url))
     return model
