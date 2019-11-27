@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import hashlib
+from typing import Any, AnyStr, Callable, Collection
 
 import numpy as np
 from operator import itemgetter
@@ -212,3 +213,28 @@ def format_hash(pth_file, ext='.pth'):
         fname = pth_file.replace(ext, f'-{hashval}' + ext)
     print(f'Copying {pth_file} to {fname}')
     shutil.copyfile(pth_file, fname)
+
+
+def func_args(func) -> Collection[str]:
+    """Return the arguments of `func`."""
+    try:
+        code = func.__code__
+    except AttributeError:
+        code = func.__init__.__code__
+    return code.co_varnames[:code.co_argcount]
+
+
+def class_args(cls) -> Collection[str]:
+    """Return the arguments of the class init method."""
+
+
+def has_arg(func, arg) -> bool:
+    "Check if `func` accepts `arg`."
+    return arg in func_args(func)
+
+
+def split_kwargs_by_func(func, kwargs):
+    "Split `kwargs` between those expected by `func` and the others."
+    args = func_args(func)
+    func_kwargs = {a: kwargs.pop(a) for a in args if a in kwargs}
+    return func_kwargs, kwargs
