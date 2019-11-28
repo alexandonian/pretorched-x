@@ -53,7 +53,7 @@ def parse_args():
     parser.add_argument('--scheduler', type=str, default='CosineAnnealingLR')
     parser.add_argument('--init', type=str, default='ortho')
 
-    parser.add_argument('-j', '--workers', default=12, type=int, metavar='N',
+    parser.add_argument('-j', '--num_workers', default=12, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=100, type=int, metavar='N',
                         help='number of total epochs to run')
