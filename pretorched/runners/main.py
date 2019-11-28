@@ -252,7 +252,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'optimizer': optimizer.state_dict(),
                 'train_acc_history': train_acc_history,
                 'val_acc_history': val_acc_history,
-            }, is_best, filename=os.path.join(args.save_dir, save_name))
+            }, is_best, filename=os.path.join(args.weights_dir, save_name))
 
             with open(args.log_file, 'w') as f:
                 json.dump(history, f, indent=4)
