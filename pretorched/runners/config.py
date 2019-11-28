@@ -8,7 +8,7 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-DATA_ROOT = '/data/vision/oliva/scratch/datasets'
+DATA_ROOT = os.getenv('DATA_ROOT')
 
 num_classes_dict = {
     'ImageNet': 1000,
