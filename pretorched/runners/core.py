@@ -177,9 +177,8 @@ def get_dataloader(name, data_root=None, split='train', size=224, resolution=256
                              resolution=resolution, data_root=data_root)
 
     dataset = get_dataset(name=name, root=root,
-                          resolution=resolution,
-                          dataset_type=dataset_type,
-                          load_in_mem=load_in_mem)
+                          split=split, resolution=resolution,
+                          dataset_type=dataset_type, load_in_mem=load_in_mem)
 
     sampler = DistributedSampler(dataset) if (distributed and split == 'train') else None
     return DataLoader(dataset, batch_size=batch_size, sampler=sampler,
