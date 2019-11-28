@@ -219,7 +219,7 @@ def main_worker(gpu, ngpus_per_node, args):
         history['acc']['top1'].append(train_acc1.item())
         history['acc']['top5'].append(train_acc5.item())
         history['acc']['avg'].append(((train_acc1 + train_acc5) / 2).item())
-        history['loss'].append(train_loss.item())
+        history['loss'].append(train_loss)
 
         # Evaluate on validation set.
         val_acc1, val_acc5, val_loss = validate(val_loader, model, criterion, args, display)
@@ -231,7 +231,7 @@ def main_worker(gpu, ngpus_per_node, args):
         history['val_acc']['top1'].append(val_acc1)
         history['val_acc']['top5'].append(val_acc5)
         history['val_acc']['avg'].append((val_acc1 + val_acc5) / 2)
-        history['val_loss'].append(val_loss.item())
+        history['val_loss'].append(val_loss)
 
         # Update the learning rate.
         if type(scheduler).__name__ == 'ReduceLROnPlateau':

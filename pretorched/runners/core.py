@@ -116,7 +116,7 @@ def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **
     return model
 
 
-def get_transform(name='ImageNet', split='train', size=224):
+def get_transform(name='ImageNet', split='train', size=224, resolution=256):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     data_transforms = {
@@ -127,13 +127,13 @@ def get_transform(name='ImageNet', split='train', size=224):
             normalize,
         ]),
         'val': transforms.Compose([
-            transforms.Resize(size),
+            transforms.Resize(resolution),
             transforms.CenterCrop(size),
             transforms.ToTensor(),
             normalize,
         ]),
         'test': transforms.Compose([
-            transforms.Resize(size),
+            transforms.Resize(resolution),
             transforms.CenterCrop(size),
             transforms.ToTensor(),
             normalize,
@@ -150,12 +150,12 @@ def get_dataset(name, root, split='train', size=224, resolution=256,
     kwargs = {**kwargs,
               'root': root,
               'metafile': os.path.join(root, f'{split}.txt'),
-              'transform': get_transform(name, split, size)}
+              'transform': get_transform(name, split, size, resolution)}
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, kwargs)
     return Dataset(**dataset_kwargs)
 
 
-def get_hybrid_dataset(name, root, split='train', size=224, resolution=128,
+def get_hybrid_dataset(name, root, split='train', size=224, resolution=256,
                        dataset_type='ImageFolder', load_in_mem=False):
     if name != 'Hybrid1365':
         raise ValueError(f'Hybrid Dataset: {name} not implemented')
