@@ -116,9 +116,9 @@ def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **
     return model
 
 
-def get_transform(name='ImageNet', split='train', size=224, resolution=256):
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+def get_transform(name='ImageNet', split='train', size=224, resolution=256,
+                  mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
+    normalize = transforms.Normalize(mean=mean, std=std)
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),
