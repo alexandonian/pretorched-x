@@ -18,6 +18,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
 from pretorched.data import ImageFolderDataset
+from pretorched.metrics import accuracy
 
 from . import core
 from . import config as cfg
@@ -66,7 +67,6 @@ def main_worker(gpu, ngpus_per_node, args):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     args.save_dir = os.path.join(dir_path, args.save_dir)
-    print(args.save_dir)
 
     os.makedirs(args.save_dir, exist_ok=True)
     save_name = '_'.join([args.arch,
@@ -198,6 +198,22 @@ def main_worker(gpu, ngpus_per_node, args):
         validate(val_loader, model, criterion, args)
         return
 
+    history = {
+        'epoch': [],
+        'loss': [],
+        'val_loss': [],
+        'acc': {
+            'avg': [],
+            'top1': [],
+            'top5': [],
+        },
+        'val_acc': {
+            'avg': [],
+            'top1': [],
+            'top5': [],
+        },
+    }
+
     val_acc_history = {
         'avg': [],
         'top1': [],
@@ -220,16 +236,26 @@ def main_worker(gpu, ngpus_per_node, args):
                                                    criterion, optimizer,
                                                    epoch, args, display)
 
-        train_acc_history['top1'].append(train_acc1)
-        train_acc_history['top5'].append(train_acc5)
-        train_acc_history['avg'].append((train_acc1 + train_acc5) / 2)
+        train_acc_history['top1'].append(train_acc1.item())
+        train_acc_history['top5'].append(train_acc5.item())
+        train_acc_history['avg'].append(((train_acc1 + train_acc5) / 2).item())
+
+        history['acc']['top1'].append(train_acc1.item())
+        history['acc']['top5'].append(train_acc5.item())
+        history['acc']['avg'].append(((train_acc1 + train_acc5) / 2).item())
+        history['loss'].append(train_loss.item())
 
         # Evaluate on validation set.
-        acc1, acc5, val_loss = validate(val_loader, model, criterion, args, display)
+        val_acc1, val_acc5, val_loss = validate(val_loader, model, criterion, args, display)
 
-        val_acc_history['top1'].append(acc1)
-        val_acc_history['top5'].append(acc5)
-        val_acc_history['avg'].append((acc1 + acc5) / 2)
+        val_acc_history['top1'].append(val_acc1)
+        val_acc_history['top5'].append(val_acc5)
+        val_acc_history['avg'].append((val_acc1 + val_acc5) / 2)
+
+        history['val_acc']['top1'].append(val_acc1)
+        history['val_acc']['top5'].append(val_acc5)
+        history['val_acc']['avg'].append((val_acc1 + val_acc5) / 2)
+        history['val_loss'].append(val_loss.item())
 
         # Update the learning rate.
         if type(scheduler).__name__ == 'ReduceLROnPlateau':
@@ -238,8 +264,8 @@ def main_worker(gpu, ngpus_per_node, args):
             scheduler.step()
 
         # remember best acc@1 and save checkpoint
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
+        is_best = val_acc1 > best_acc1
+        best_acc1 = max(val_acc1, best_acc1)
 
         if is_rank0(args, ngpus_per_node):
             save_checkpoint({
@@ -250,7 +276,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'optimizer': optimizer.state_dict(),
                 'train_acc_history': train_acc_history,
                 'val_acc_history': val_acc_history,
-            }, is_best, filename=save_name)
+            }, is_best, filename=os.path.join(args.save_dir, save_name))
 
 
 def is_rank0(args, ngpus_per_node):
@@ -355,7 +381,7 @@ def save_checkpoint(state, is_best, filename='', suffix='checkpoint.pth.tar'):
     torch.save(state, checkpoint)
     if is_best:
         best_name = '_'.join([filename, 'best.pth.tar'])
-        shutil.copyfile(filename, best_name)
+        shutil.copyfile(checkpoint, best_name)
 
 
 class AverageMeter(object):
@@ -398,23 +424,6 @@ class ProgressMeter(object):
         num_digits = len(str(num_batches // 1))
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
-
-
-def accuracy(output, target, topk=(1,)):
-    """Computes the accuracy over the k top predictions for the specified values of k"""
-    with torch.no_grad():
-        maxk = max(topk)
-        batch_size = target.size(0)
-
-        _, pred = output.topk(maxk, 1, True, True)
-        pred = pred.t()
-        correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-        res = []
-        for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-            res.append(correct_k.mul_(100.0 / batch_size))
-        return res
 
 
 if __name__ == '__main__':
