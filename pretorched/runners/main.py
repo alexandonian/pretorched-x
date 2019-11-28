@@ -165,6 +165,8 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # Data loading code
     dataloaders = core.get_dataloaders(args.dataset, args.data_root,
+                                       batch_size=args.batch_size,
+                                       num_workers=args.num_workers,
                                        distributed=args.distributed,
                                        size=input_size)
     train_loader, val_loader = dataloaders['train'], dataloaders['val']
