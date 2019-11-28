@@ -1,5 +1,6 @@
 import functools
 import os
+from operator import add
 from collections import defaultdict
 
 import torch
@@ -154,18 +155,21 @@ def get_dataset(name, root, split='train', size=224, resolution=256,
     return Dataset(**dataset_kwargs)
 
 
-def get_hybrid_dataset(root_dir=None, resolution=128, dataset_type='ImageHDF5', load_in_mem=False):
+def get_hybrid_dataset(name, root, split='train', size=224, resolution=128,
+                       dataset_type='ImageFolder', load_in_mem=False):
+    if name != 'Hybrid1365':
+        raise ValueError(f'Hybrid Dataset: {name} not implemented')
     imagenet_root = cfg.get_root_dirs('ImageNet', dataset_type=dataset_type,
-                                      resolution=resolution, data_root=root_dir)
+                                      resolution=resolution, data_root=root)
     places365_root = cfg.get_root_dirs('Places365', dataset_type=dataset_type,
-                                       resolution=resolution, data_root=root_dir)
+                                       resolution=resolution, data_root=root)
     imagenet_dataset = get_dataset('ImageNet', resolution=resolution,
                                    dataset_type=dataset_type, load_in_mem=load_in_mem,
-                                   root_dir=imagenet_root)
+                                   root=imagenet_root)
     placess365_dataset = get_dataset('Places365', resolution=resolution,
                                      dataset_type=dataset_type, load_in_mem=load_in_mem,
                                      target_transform=functools.partial(add, 1000),
-                                     root_dir=places365_root)
+                                     root=places365_root)
     return torch.utils.data.ConcatDataset((imagenet_dataset, placess365_dataset))
 
 
@@ -175,10 +179,10 @@ def get_dataloader(name, data_root=None, split='train', size=224, resolution=256
                    **kwargs):
     root = cfg.get_root_dirs(name, dataset_type=dataset_type,
                              resolution=resolution, data_root=data_root)
-
-    dataset = get_dataset(name=name, root=root,
-                          split=split, resolution=resolution,
-                          dataset_type=dataset_type, load_in_mem=load_in_mem)
+    get_dset_func = get_hybrid_dataset if name == 'Hybrid1365' else get_dataset
+    dataset = get_dset_func(name=name, root=root,
+                            split=split, resolution=resolution,
+                            dataset_type=dataset_type, load_in_mem=load_in_mem)
 
     sampler = DistributedSampler(dataset) if (distributed and split == 'train') else None
     return DataLoader(dataset, batch_size=batch_size, sampler=sampler,

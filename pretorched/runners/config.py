@@ -12,7 +12,9 @@ DATA_ROOT = os.getenv('DATA_ROOT')
 
 num_classes_dict = {
     'ImageNet': 1000,
-    'Places365': 365}
+    'Places365': 365,
+    'Hybrid1365': 1365,
+}
 
 root_dirs = {
     'ImageNet': os.path.join(DATA_ROOT, 'ImageNet'),
@@ -30,8 +32,9 @@ def get_root_dirs(name, dataset_type='ImageHDF5', resolution=128, data_root=DATA
             'ImageHDF5': defaultdict(lambda: os.path.join(data_root, 'Places365'), {}),
             'ImageFolder': defaultdict(lambda: os.path.join(data_root, 'Places365'), {}),
         },
-        'Hybrid': {
+        'Hybrid1365': {
             'ImageHDF5': defaultdict(lambda: data_root, {}),
+            'ImageFolder': defaultdict(lambda: data_root, {}),
         }
     }
     return root_dirs[name][dataset_type][resolution]
