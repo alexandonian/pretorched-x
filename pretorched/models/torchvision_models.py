@@ -3,6 +3,7 @@
 from __future__ import print_function, division, absolute_import
 import re
 import types
+import torch.nn as nn
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 import torch.nn.functional as F
@@ -52,6 +53,7 @@ model_urls = {
     'vgg13_bn': 'https://download.pytorch.org/models/vgg13_bn-abd245e5.pth',
     'vgg16_bn': 'https://download.pytorch.org/models/vgg16_bn-6c64b313.pth',
     'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
+    'mobilenet_v2': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
     # 'vgg16_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg16-00b39a1b.pth',
     # 'vgg19_caffe': 'https://s3-us-west-2.amazonaws.com/jcjohns-models/vgg19-d01eb7cb.pth'
 }
@@ -206,6 +208,7 @@ def inflate_pretrained(model, num_classes, settings):
 
 #################################################################
 # AlexNet
+#################################################################
 
 
 def modify_alexnet(model):
@@ -245,6 +248,7 @@ def modify_alexnet(model):
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
+    setattr(model.__class__, 'input_size', (3, 224, 224))
     return model
 
 
@@ -261,7 +265,8 @@ def alexnet(num_classes=1000, pretrained='imagenet'):
     return model
 
 ###############################################################
-# DenseNets
+# DenseNets
+###############################################################
 
 
 def modify_densenets(model):
@@ -284,6 +289,7 @@ def modify_densenets(model):
     # Modify methods
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
+    setattr(model.__class__, 'input_size', (3, 224, 224))
     return model
 
 
@@ -387,7 +393,8 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
     return model
 
 ###############################################################
-# InceptionV3
+# InceptionV3
+###############################################################
 
 
 def inceptionv3(num_classes=1000, pretrained='imagenet'):
@@ -447,10 +454,12 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
     model.features = types.MethodType(features, model)
     model.logits = types.MethodType(logits, model)
     model.forward = types.MethodType(forward, model)
+    setattr(model.__class__, 'input_size', (3, 299, 299))
     return model
 
 ###############################################################
-# ResNets
+# ResNets
+###############################################################
 
 
 def modify_resnets(model):
@@ -485,6 +494,7 @@ def modify_resnets(model):
     setattr(model.__class__, 'features', features)
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
+    setattr(model.__class__, 'input_size', (3, 224, 224))
     # model.features = types.MethodType(features, model)
     # model.logits = types.MethodType(logits, model)
     # model.forward = types.MethodType(forward, model)
@@ -549,7 +559,8 @@ def resnet152(num_classes=1000, pretrained='imagenet'):
     return model
 
 ###############################################################
-# SqueezeNets
+# SqueezeNets
+###############################################################
 
 
 def modify_squeezenets(model):
@@ -577,6 +588,7 @@ def modify_squeezenets(model):
     # Modify methods
     model.logits = types.MethodType(logits, model)
     model.forward = types.MethodType(forward, model)
+    setattr(model.__class__, 'input_size', (3, 224, 224))
     return model
 
 
@@ -607,13 +619,12 @@ def squeezenet1_1(num_classes=1000, pretrained='imagenet'):
     return model
 
 ###############################################################
-# VGGs
+# VGGs
+###############################################################
 
 
 def modify_vggs(model):
     # Modify attributs
-    model._features = model.features
-    del model.features
     model.linear0 = model.classifier[0]
     model.relu0 = model.classifier[1]
     model.dropout0 = model.classifier[2]
@@ -622,15 +633,14 @@ def modify_vggs(model):
     model.dropout1 = model.classifier[5]
     model.last_linear = model.classifier[6]
     del model.classifier
-
-    def features(self, input):
-        x = self._features(input)
-        x = x.view(x.size(0), -1)
-        x = self.linear0(x)
-        x = self.relu0(x)
-        x = self.dropout0(x)
-        x = self.linear1(x)
-        return x
+    features = nn.Sequential(
+        model.features,
+        nn.Flatten(),
+        model.linear0,
+        model.relu0,
+        model.dropout0,
+        model.linear1
+    )
 
     def logits(self, features):
         x = self.relu1(features)
@@ -644,9 +654,10 @@ def modify_vggs(model):
         return x
 
     # Modify methods
-    setattr(model.__class__, 'features', features)
+    setattr(model, 'features', features)
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
+    setattr(model.__class__, 'input_size', (3, 224, 224))
     return model
 
 
@@ -736,3 +747,11 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
         model = load_pretrained(model, num_classes, settings)
     model = modify_vggs(model)
     return model
+
+
+###############################################################
+# MobileNets
+###############################################################
+
+def modify_mobilenetv2(model):
+    pass

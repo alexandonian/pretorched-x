@@ -188,11 +188,10 @@ class MXResNet(nn.Module):
         x = self.logits(x)
         return x
 
-        pass
-
 
 def mxresnet(expansion, n_layers, name, pretrained=False, **kwargs):
     model = MXResNet(expansion, n_layers, **kwargs)
+    model.input_size = (3, 224, 224)
     if pretrained:
         # model.load_state_dict(model_zoo.load_url(model_urls[name]))
         print("No pretrained yet for MXResNet")

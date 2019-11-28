@@ -17,7 +17,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
-from pretorched.data import ImageFolderDataset
+# from pretorched.data import ImageFolderDataset
 from pretorched.metrics import accuracy
 
 from . import core
@@ -99,6 +99,7 @@ def main_worker(gpu, ngpus_per_node, args):
     model = core.get_model(args.arch, args.num_classes,
                            pretrained=args.pretrained,
                            init_name=args.init)
+    input_size = model.input_size
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -129,7 +130,7 @@ def main_worker(gpu, ngpus_per_node, args):
         else:
             model = torch.nn.DataParallel(model).cuda()
 
-    # define loss function (criterion) and optimizer
+    # Define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
     optimizer = core.get_optimizer(model, args.optimizer,
@@ -163,41 +164,11 @@ def main_worker(gpu, ngpus_per_node, args):
     cudnn.benchmark = True
 
     # Data loading code
-    train_metafile = os.path.join(args.data, 'train.txt')
-    val_metafile = os.path.join(args.data, 'val.txt')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-    train_dataset = ImageFolderDataset(
-        args.data,
-        train_metafile,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]))
-
-    if args.distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    else:
-        train_sampler = None
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
-
-    val_loader = torch.utils.data.DataLoader(
-        ImageFolderDataset(
-            args.data,
-            val_metafile,
-            transforms.Compose([
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                normalize,
-            ])),
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
+    dataloaders = core.get_dataloaders(args.dataset, args.data_root,
+                                       distributed=args.distributed,
+                                       size=input_size)
+    train_loader, val_loader = dataloaders['train'], dataloaders['val']
+    train_sampler = train_loader.sampler
 
     if args.evaluate:
         validate(val_loader, model, criterion, args)
@@ -322,8 +293,8 @@ def train(train_loader, model, criterion, optimizer, epoch, args, display=True):
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), images.size(0))
-        top1.update(acc1[0], images.size(0))
-        top5.update(acc5[0], images.size(0))
+        top1.update(acc1, images.size(0))
+        top5.update(acc5, images.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
