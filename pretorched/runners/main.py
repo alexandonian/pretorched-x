@@ -1,4 +1,4 @@
-import argparse
+import json
 import os
 import random
 import shutil
@@ -66,9 +66,11 @@ def main_worker(gpu, ngpus_per_node, args):
     args.gpu = gpu
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    args.save_dir = os.path.join(dir_path, args.save_dir)
+    args.weights_dir = os.path.join(dir_path, args.weights_dir)
+    args.logs_dir = os.path.join(dir_path, args.logs_dir)
+    os.makedirs(args.weights_dir, exist_ok=True)
+    os.makedirs(args.logs_dir, exist_ok=True)
 
-    os.makedirs(args.save_dir, exist_ok=True)
     save_name = '_'.join([args.arch,
                           args.dataset.lower(),
                           f'init-{"-".join([args.pretrained, args.init]) if args.pretrained else args.init}',
@@ -78,6 +80,9 @@ def main_worker(gpu, ngpus_per_node, args):
                           f'bs-{args.batch_size}',
                           ])
     print(f'Starting: {save_name}')
+
+    args.log_file = os.path.join(args.logs_dir, save_name + '.json')
+
     if args.gpu is not None:
         print("Use GPU: {} for training".format(args.gpu))
 
@@ -277,6 +282,9 @@ def main_worker(gpu, ngpus_per_node, args):
                 'train_acc_history': train_acc_history,
                 'val_acc_history': val_acc_history,
             }, is_best, filename=os.path.join(args.save_dir, save_name))
+
+            with open(args.log_file, 'w') as f:
+                json.dump(history, f, indent=4)
 
 
 def is_rank0(args, ngpus_per_node):

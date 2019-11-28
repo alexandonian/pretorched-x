@@ -57,7 +57,8 @@ def parse_args():
                         metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--resume', default='', type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
-    parser.add_argument('--save_dir', default='checkpoints', type=str, metavar='PATH')
+    parser.add_argument('--weights_dir', default='weights', type=str, metavar='PATH')
+    parser.add_argument('--logs_dir', default='logs', type=str, metavar='PATH')
     parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--world-size', default=-1, type=int,
