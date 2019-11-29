@@ -249,6 +249,8 @@ def modify_alexnet(model):
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     return model
 
 
@@ -290,6 +292,8 @@ def modify_densenets(model):
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     return model
 
 
@@ -455,6 +459,8 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
     model.logits = types.MethodType(logits, model)
     model.forward = types.MethodType(forward, model)
     setattr(model.__class__, 'input_size', (3, 299, 299))
+    setattr(model.__class__, 'mean', [0.5, 0.5, 0.5])
+    setattr(model.__class__, 'std', [0.5, 0.5, 0.5])
     return model
 
 ###############################################################
@@ -495,6 +501,8 @@ def modify_resnets(model):
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     # model.features = types.MethodType(features, model)
     # model.logits = types.MethodType(logits, model)
     # model.forward = types.MethodType(forward, model)
@@ -589,6 +597,8 @@ def modify_squeezenets(model):
     model.logits = types.MethodType(logits, model)
     model.forward = types.MethodType(forward, model)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     return model
 
 
@@ -658,6 +668,8 @@ def modify_vggs(model):
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     return model
 
 
