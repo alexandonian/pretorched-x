@@ -165,11 +165,11 @@ def get_hybrid_dataset(name, root, split='train', size=224, resolution=256,
                                        resolution=resolution, data_root=root)
     imagenet_dataset = get_dataset('ImageNet', resolution=resolution, size=size,
                                    dataset_type=dataset_type, load_in_mem=load_in_mem,
-                                   root=imagenet_root)
+                                   split=split, root=imagenet_root)
     placess365_dataset = get_dataset('Places365', resolution=resolution, size=size,
                                      dataset_type=dataset_type, load_in_mem=load_in_mem,
                                      target_transform=functools.partial(add, 1000),
-                                     root=places365_root)
+                                     split=split, root=places365_root)
     return torch.utils.data.ConcatDataset((imagenet_dataset, placess365_dataset))
 
 

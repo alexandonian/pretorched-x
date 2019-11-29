@@ -18,21 +18,21 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.models as models
 
-from pretorched.data import ImageFolderDataset
+from pretorched.runners import core, config as cfg
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch Training')
-parser.add_argument('--data', metavar='DIR', help='path to dataset',
-                    default='data')
+parser.add_argument('--dataset', metavar='DIR', default='ImageNet')
+parser.add_argument('--data_root', metavar='DIR', default='/data/vision/oliva/scratch/datasets')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='inception_v3',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
                     ' (default: resnet18)')
-parser.add_argument('-j', '--workers', default=24, type=int, metavar='N',
+parser.add_argument('-j', '--num_workers', default=24, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -138,8 +138,9 @@ def main_worker(gpu, ngpus_per_node, args):
         print("=> creating model '{}'".format(args.arch))
         model = models.__dict__[args.arch]()
 
-    model.fc = nn.Linear(model.fc.in_features, 365)
-    model.AuxLogits.fc = nn.Linear(model.AuxLogits.fc.in_features, 365)
+    num_classes = cfg.num_classes_dict[args.dataset]
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    model.AuxLogits.fc = nn.Linear(model.AuxLogits.fc.in_features, num_classes)
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -152,7 +153,7 @@ def main_worker(gpu, ngpus_per_node, args):
             # DistributedDataParallel, we need to divide the batch size
             # ourselves based on the total number of GPUs we have
             args.batch_size = int(args.batch_size / ngpus_per_node)
-            args.workers = int(args.workers / ngpus_per_node)
+            args.num_workers = int(args.num_workers / ngpus_per_node)
             model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
         else:
             model.cuda()
@@ -197,12 +198,6 @@ def main_worker(gpu, ngpus_per_node, args):
     cudnn.benchmark = True
 
     # Data loading code
-    # traindir = os.path.join(args.data, 'train')
-    # valdir = os.path.join(args.data, 'val')
-    traindir, valdir = args.data, args.data
-    trainmetafile = os.path.join(args.data, 'train.txt')
-    valmetafile = os.path.join(args.data, 'val.txt')
-
     if args.arch in ['inception_v3']:
         resize_size = 320
         input_size = 299
@@ -213,40 +208,21 @@ def main_worker(gpu, ngpus_per_node, args):
         input_size = 224
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
-
-    normalize = transforms.Normalize(mean=mean, std=std)
-
-    train_dataset = ImageFolderDataset(
-        traindir,
-        trainmetafile,
-        transforms.Compose([
-            transforms.RandomResizedCrop(input_size),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]))
-
-    if args.distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    else:
-        train_sampler = None
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
-
-    val_loader = torch.utils.data.DataLoader(
-        ImageFolderDataset(
-            valdir,
-            valmetafile,
-            transforms.Compose([
-                transforms.Resize(resize_size),
-                transforms.CenterCrop(input_size),
-                transforms.ToTensor(),
-                normalize,
-            ])),
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
+    dataloaders = core.get_dataloaders(args.dataset, args.data_root,
+                                       batch_size=args.batch_size,
+                                       num_workers=args.num_workers,
+                                       distributed=args.distributed,
+                                       size=input_size, resolution=resize_size)
+    train_loader, val_loader = dataloaders['train'], dataloaders['val']
+    train_sampler = train_loader.sampler
+    try:
+        train_loader.dataset.transforms.transforms[-1] = transforms.Normalize(mean=mean, std=std)
+        val_loader.dataset.transforms.transforms[-1] = transforms.Normalize(mean=mean, std=std)
+    except Exception:
+        for dataset in train_loader.dataset.datasets:
+            dataset.transform.transforms[-1] = transforms.Normalize(mean=mean, std=std)
+        for dataset in val_loader.dataset.datasets:
+            dataset.transform.transforms[-1] = transforms.Normalize(mean=mean, std=std)
 
     if args.evaluate:
         validate(val_loader, model, criterion, args)
@@ -255,7 +231,6 @@ def main_worker(gpu, ngpus_per_node, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        adjust_learning_rate(optimizer, epoch, args)
 
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, args)
@@ -275,7 +250,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,
                 'optimizer': optimizer.state_dict(),
-            }, is_best, filename=f'{args.arch}_checkpoint.pth.tar')
+            }, is_best, filename=f'{args.dataset}_{args.arch}_checkpoint.pth.tar')
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -301,7 +276,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
 
         # compute output
         output = model(input)
-        if args.arch in ['inception_v3']:
+        if args.arch in ['inception_v3', 'inceptionv3']:
             output, aux_output = output
             loss1 = criterion(output, target)
             loss2 = criterion(aux_output, target)
@@ -348,7 +323,6 @@ def validate(val_loader, model, criterion, args):
 
             # compute output
             output = model(input)
-            print(output.shape)
             loss = criterion(output, target)
 
             # measure accuracy and record loss
