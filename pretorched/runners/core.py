@@ -121,7 +121,7 @@ def get_transform(name='ImageNet', split='train', size=224, resolution=256,
     normalize = transforms.Normalize(mean=mean, std=std)
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomResizedCrop(size),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
@@ -163,10 +163,10 @@ def get_hybrid_dataset(name, root, split='train', size=224, resolution=256,
                                       resolution=resolution, data_root=root)
     places365_root = cfg.get_root_dirs('Places365', dataset_type=dataset_type,
                                        resolution=resolution, data_root=root)
-    imagenet_dataset = get_dataset('ImageNet', resolution=resolution,
+    imagenet_dataset = get_dataset('ImageNet', resolution=resolution, size=size,
                                    dataset_type=dataset_type, load_in_mem=load_in_mem,
                                    root=imagenet_root)
-    placess365_dataset = get_dataset('Places365', resolution=resolution,
+    placess365_dataset = get_dataset('Places365', resolution=resolution, size=size,
                                      dataset_type=dataset_type, load_in_mem=load_in_mem,
                                      target_transform=functools.partial(add, 1000),
                                      root=places365_root)
@@ -180,7 +180,7 @@ def get_dataloader(name, data_root=None, split='train', size=224, resolution=256
     root = cfg.get_root_dirs(name, dataset_type=dataset_type,
                              resolution=resolution, data_root=data_root)
     get_dset_func = get_hybrid_dataset if name == 'Hybrid1365' else get_dataset
-    dataset = get_dset_func(name=name, root=root,
+    dataset = get_dset_func(name=name, root=root, size=size,
                             split=split, resolution=resolution,
                             dataset_type=dataset_type, load_in_mem=load_in_mem)
 

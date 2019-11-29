@@ -97,7 +97,7 @@ def main_worker(gpu, ngpus_per_node, args):
     model = core.get_model(args.arch, args.num_classes,
                            pretrained=args.pretrained,
                            init_name=args.init)
-    input_size = model.input_size
+    input_size = model.input_size[-1]
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -232,6 +232,7 @@ def main_worker(gpu, ngpus_per_node, args):
         history['val_acc']['top5'].append(val_acc5)
         history['val_acc']['avg'].append((val_acc1 + val_acc5) / 2)
         history['val_loss'].append(val_loss)
+        history['epoch'].append(epoch + 1)
 
         # Update the learning rate.
         if type(scheduler).__name__ == 'ReduceLROnPlateau':
