@@ -174,3 +174,8 @@ def prepare_z_y(G_batch_size, dim_z, nclasses, device='cuda',
     y_.init_distribution('categorical', num_categories=nclasses)
     y_ = y_.to(device, torch.int64)
     return z_, y_
+
+
+def denorm(x):
+    out = (x + 1) / 2
+    return out.clamp_(0, 1) * 255
