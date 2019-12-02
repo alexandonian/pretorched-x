@@ -1,18 +1,7 @@
 import copy
-import re
+import shutil
 
-import numpy as np
 import torch
-import torch.nn as nn
-
-
-class Identity(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x):
-        return x
 
 
 class EMA(object):
@@ -95,25 +84,21 @@ def default_ortho(model, strength=1e-4, blacklist=[]):
             param.grad.data += strength * grad.view(param.shape)
 
 
-def hook_sizes(model, inputs, verbose=True):
+def hook_sizes(G, inputs, verbose=True):
 
-    # Hook the output sizes.
+    # Hook the output sizes
     sizes = []
 
     def hook_output_size(module, input, output):
         sizes.append(output.shape)
 
-    # Get modules and register forward hooks.
-    names, mods = zip(*[(name, p) for name, p in model.named_modules()
-                        if list(p.parameters()) and (not p._modules)])
+    names, mods = zip(*[(name, p) for name, p in G.named_modules() if list(p.parameters()) and (not p._modules)])
     for m in mods:
         m.register_forward_hook(hook_output_size)
 
-    # Make forward pass.
     with torch.no_grad():
-        output = model(*inputs)
+        output = G(*inputs)
 
-    # Display output, if desired.
     if verbose:
         max_len = max(max([len(n) for n in names]), len('Input'))
 
@@ -126,81 +111,66 @@ def hook_sizes(model, inputs, verbose=True):
     return output, names, sizes
 
 
-class SizeEstimator(object):
-
-    def __init__(self, model, input_size=(1, 1, 32, 32), bits=32):
-        """Estimates the size of PyTorch models in memory for a given input size."""
-        self.model = model
-        self.input_size = input_size
-        self.bits = 32
-        return
-
-    def get_parameter_sizes(self):
-        """Get sizes of all parameters in `model`."""
-        mods = list(self.model.modules())
-        sizes = []
-
-        for i in range(1, len(mods)):
-            m = mods[i]
-            p = list(m.parameters())
-            for j in range(len(p)):
-                sizes.append(np.array(p[j].size()))
-
-        self.param_sizes = sizes
-        return
-
-    def get_output_sizes(self):
-        """Run sample input through each layer to get output sizes."""
-        input_ = torch.FloatTensor(*self.input_size)
-        mods = list(self.model.modules())
-        out_sizes = []
-        for i in range(1, len(mods)):
-            m = mods[i]
-            out = m(input_)
-            out_sizes.append(np.array(out.size()))
-            input_ = out
-
-        self.out_sizes = out_sizes
-        return
-
-    def calc_param_bits(self):
-        """Calculate total number of bits to store `model` parameters."""
-        total_bits = 0
-        for i in range(len(self.param_sizes)):
-            s = self.param_sizes[i]
-            bits = np.prod(np.array(s)) * self.bits
-            total_bits += bits
-        self.param_bits = total_bits
-        return
-
-    def calc_forward_backward_bits(self):
-        """Calculate bits to store forward and backward pass."""
-        total_bits = 0
-        for i in range(len(self.out_sizes)):
-            s = self.out_sizes[i]
-            bits = np.prod(np.array(s)) * self.bits
-            total_bits += bits
-        # multiply by 2 for both forward AND backward
-        self.forward_backward_bits = (total_bits * 2)
-        return
-
-    def calc_input_bits(self):
-        """Calculate bits to store input."""
-        self.input_bits = np.prod(np.array(self.input_size)) * self.bits
-        return
-
-    def estimate_size(self):
-        """Estimate model size in memory in megabytes and bits."""
-        self.get_parameter_sizes()
-        self.get_output_sizes()
-        self.calc_param_bits()
-        self.calc_forward_backward_bits()
-        self.calc_input_bits()
-        total = self.param_bits + self.forward_backward_bits + self.input_bits
-
-        total_megabytes = (total / 8) / (1024**2)
-        return total_megabytes, total
+def save_checkpoint(state, is_best_IS, is_best_FID, filename='checkpoint.pth.tar'):
+    torch.save(state, filename)
+    if is_best_IS:
+        fname = filename.rstrip('.pth.tar') + '_best_IS' + '.pth.tar'
+        shutil.copyfile(filename, fname)
+    if is_best_FID:
+        fname = filename.rstrip('.pth.tar') + '_best_FID' + '.pth.tar'
+        shutil.copyfile(filename, fname)
 
 
-def remove_prefix(state_dict, prefix='module.'):
-    return {re.sub(fr'^{prefix}', '', k): v for k, v in state_dict.items()}
+class Distribution(torch.Tensor):
+    """A highly simplified convenience class for sampling from distributions.
+
+    One could also use PyTorch's inbuilt distributions package.
+    Note that this class requires initialization to proceed as
+    x = Distribution(torch.randn(size))
+    x.init_distribution(dist_type, **dist_kwargs)
+    x = x.to(device,dtype)
+    This is partially based on https://discuss.pytorch.org/t/subclassing-torch-tensor/23754/2
+
+    """
+
+    def init_distribution(self, dist_type, **kwargs):
+        """Init the params of the distribution."""
+
+        self.dist_type = dist_type
+        self.dist_kwargs = kwargs
+        if self.dist_type == 'normal':
+            self.mean, self.var = kwargs['mean'], kwargs['var']
+        elif self.dist_type == 'categorical':
+            self.num_categories = kwargs['num_categories']
+
+    def sample_(self):
+        if self.dist_type == 'normal':
+            self.normal_(self.mean, self.var)
+        elif self.dist_type == 'categorical':
+            self.random_(0, self.num_categories)
+        # return self.variable
+
+    def to(self, *args, **kwargs):
+        """Silly hack: overwrite the to() method to wrap the new object
+            in a distribution as well.
+        """
+        new_obj = Distribution(self)
+        new_obj.init_distribution(self.dist_type, **self.dist_kwargs)
+        new_obj.data = super().to(*args, **kwargs)
+        return new_obj
+
+
+def prepare_z_y(G_batch_size, dim_z, nclasses, device='cuda',
+                fp16=False, z_var=1.0):
+    """Convenience function to prepare a z and y vector."""
+    z_ = Distribution(torch.randn(G_batch_size, dim_z, requires_grad=False))
+    z_.init_distribution('normal', mean=0, var=z_var)
+    z_ = z_.to(device, torch.float16 if fp16 else torch.float32)
+
+    if fp16:
+        z_ = z_.half()
+
+    y_ = Distribution(torch.zeros(G_batch_size, requires_grad=False))
+    y_.init_distribution('categorical', num_categories=nclasses)
+    y_ = y_.to(device, torch.int64)
+    return z_, y_
