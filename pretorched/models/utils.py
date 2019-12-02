@@ -1,4 +1,5 @@
 import copy
+import re
 
 import numpy as np
 import torch
@@ -199,3 +200,7 @@ class SizeEstimator(object):
 
         total_megabytes = (total / 8) / (1024**2)
         return total_megabytes, total
+
+
+def remove_prefix(state_dict, prefix='module.'):
+    return {re.sub(fr'^{prefix}', '', k): v for k, v in state_dict.items()}
