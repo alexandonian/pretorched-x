@@ -652,3 +652,15 @@ def BigGAN(resolution=256, pretrained='imagenet', load_ema=True, tfhub=True):
         return G
     G = Generator(**config)
     return G
+
+
+def fix_class(G, y):
+    f = G.forward
+
+    def forward(self, z):
+        bs = z.size(0)
+        c = y * torch.ones(bs, device=z.device).long()
+        return f(z, c, embed=True)
+
+    setattr(G.__class__, 'forward', forward)
+    return G
