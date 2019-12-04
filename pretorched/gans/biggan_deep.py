@@ -1,4 +1,5 @@
 import functools
+import os
 
 import torch
 import torch.nn as nn
@@ -550,3 +551,93 @@ class G_D(nn.Module):
                     return D_out, G_z
                 else:
                     return D_out
+
+root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights')
+model_weights = {
+    'imagenet': {
+        128: {
+            'G': os.path.join(root, '100k', 'G.pth'),
+            'G_ema': os.path.join(root, '100k', 'G_ema.pth'),
+            'state_dict': os.path.join(root, '100k', 'state_dict.pth'),
+        }
+    }
+}
+
+root_url = 'http://pretorched-x.csail.mit.edu/gans/BigGAN'
+ganocracy_root_url = 'http://ganocracy.csail.mit.edu/models'
+tfhub_urls = {
+    'imagenet': {
+        128: os.path.join(ganocracy_root_url, 'tfbiggan_128-13f17ff2.pth'),
+        256: os.path.join(ganocracy_root_url, 'tfbiggan_256-a4cf3382.pth'),
+        512: os.path.join(ganocracy_root_url, 'tfbiggan_512-447bfb81.pth'),
+    }
+}
+
+model_urls = {
+    'places365': {
+        128: {
+            'D': os.path.join(root_url, ''),
+            'G': os.path.join(root_url, ''),
+            'G_ema': os.path.join(root_url, ''),
+            'state_dict': os.path.join(root_url, '')
+        },
+    },
+    'places365-challenge': {
+        256: {
+            'D': os.path.join(root_url, 'biggan_deep256_D_places365-challenge-c4fb8bfe.pth'),
+            'G': os.path.join(root_url, 'biggan_deep256_G_places365-challenge-1d2bae3c.pth'),
+            'G_ema': os.path.join(root_url, 'biggan_deep256_G_ema_places365-challenge-c3a49c8a.pth'),
+            'state_dict': os.path.join(root_url, 'biggan_deep256_state_dict_places365-challenge-dadfc659.pth')
+        }
+    }
+}
+
+
+def BigGANDeep(resolution=256, pretrained='places365-challenge', load_ema=True):
+
+    attn = {128: '64', 256: '64', 512: '64'}
+    dim_z = {128: 128, 256: 128, 512: 128}
+    config = {
+        'G_param': 'SN', 'D_param': 'SN',
+        'G_ch': 128, 'D_ch': 128,
+        'G_shared': True,
+        'shared_dim': 128, 'dim_z': dim_z[resolution],
+        'G_depth': 2, 'D_depth': 2,
+        'hier': True, 'cross_replica': False,
+        'mybn': False, 'G_activation': nn.ReLU(inplace=True),
+        'G_attn': attn[resolution],
+        'norm_style': 'bn',
+        'G_init': 'ortho', 'skip_init': True, 'no_optim': True,
+        'G_fp16': False, 'G_mixed_precision': False,
+        'accumulate_stats': False, 'num_standing_accumulations': 16,
+        'G_eval_mode': True,
+        'BN_eps': 1e-04, 'SN_eps': 1e-04,
+        'num_G_SVs': 1, 'num_G_SV_itrs': 1, 'resolution': resolution,
+        'n_classes': 1000
+    }
+
+    version = 'G_ema' if load_ema else 'G'
+
+    if pretrained is not None:
+        url = model_urls[pretrained][resolution][version]
+        sd_url = model_urls[pretrained][resolution]['state_dict']
+        weights = torch.hub.load_state_dict_from_url(url)
+        state_dict = torch.hub.load_state_dict_from_url(sd_url)
+        G = Generator(**state_dict['config'])
+        G.load_state_dict(weights, strict=False)
+        G.eval()
+        return G
+    G = Generator(**config)
+    return G
+
+
+def fix_class(G, y):
+    f = G.forward
+
+    def forward(self, z):
+        bs = z.size(0)
+        c = y * torch.ones(bs, device=z.device).long()
+        return f(z, c, embed=True)
+
+    setattr(G.__class__, 'forward', forward)
+    return G
