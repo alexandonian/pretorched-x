@@ -27,4 +27,3 @@ def test_resnets(name, pretrained, input):
 @pytest.fixture
 def input():
     return torch.randn(TEST_BATCH_SIZE, 3, 224, 224).to(device)
-

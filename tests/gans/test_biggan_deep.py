@@ -25,7 +25,7 @@ def test_biggan_deep_generator(res):
 ])
 def test_pretrained_biggan_deep(res, pretrained, load_ema):
     G = BigGANDeep(resolution=res, pretrained=pretrained,
-               load_ema=load_ema).to(device)
+                   load_ema=load_ema).to(device)
     z_, y_ = utils.prepare_z_y(batch_size, G.dim_z, n_classes, device=device)
     G_z = G(z_, G.shared(y_))
     assert G_z.size() == torch.Size((batch_size, 3, res, res))

@@ -36,8 +36,8 @@ def test_get_hybrid_dataset(name, split, size, dataset_type):
                              data_root=DATA_ROOT)
 
     dataset = core.get_hybrid_dataset(name=name, root=root,
-                               split=split, size=224,
-                               dataset_type=dataset_type)
+                                      split=split, size=224,
+                                      dataset_type=dataset_type)
     img, label = dataset[0]
     assert label < cfg.num_classes_dict[name]
     assert img.shape == torch.Size((3, size, size))

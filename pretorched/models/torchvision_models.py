@@ -353,7 +353,7 @@ def densenet201(num_classes=1000, pretrained='imagenet'):
     """
     model = models.densenet201(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
-       # '.'s are no longer allowed in module names, but pervious _DenseLayer
+        # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
         # They are also in the checkpoints in model_urls. This pattern is used
         # to find such keys.
@@ -378,7 +378,7 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
     """
     model = models.densenet161(num_classes=num_classes, pretrained=False)
     if pretrained is not None:
-       # '.'s are no longer allowed in module names, but pervious _DenseLayer
+        # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
         # They are also in the checkpoints in model_urls. This pattern is used
         # to find such keys.
