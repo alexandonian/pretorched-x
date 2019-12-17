@@ -21,6 +21,19 @@ root_dirs = {
     'Places365': os.path.join(DATA_ROOT, 'Places365'),
 }
 
+optimizer_defaults = {
+    'SGD': {
+        'momentum': 0.9,
+        'weight_decay': 1e-4,
+    },
+}
+
+scheduler_defaults = {
+    'CosineAnnealingLR': {
+        'T_max': 100
+    }
+}
+
 
 def get_root_dirs(name, dataset_type='ImageHDF5', resolution=128, data_root=DATA_ROOT):
     root_dirs = {
