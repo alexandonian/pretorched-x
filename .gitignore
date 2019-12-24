@@ -48,6 +48,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
@@ -104,3 +105,8 @@ ENV/
 
 # vscode
 .vscode/
+
+# Project Specific
+pretorched/runners/logs/
+pretorched/runners/plot.ipynb
+pretorched/runners/weights/
