@@ -1,4 +1,5 @@
 import io
+import math
 import threading
 
 import IPython.display
@@ -118,6 +119,24 @@ def truncated_z_sample(batch_size, dim_z, truncation=1.0, seed=None, device='cud
     values = truncnorm.rvs(-2, 2, size=(batch_size, dim_z), random_state=state)
     return torch.Tensor(float(truncation) * values).to(device)
 
+
+def make_grid(tensor, nrow=8):
+    """Make a grid of images."""
+    tensor = np.array(tensor)
+    nmaps = tensor.shape[0]
+    xmaps = min(nrow, nmaps)
+    ymaps = int(math.ceil(float(nmaps) / xmaps))
+    height, width = int(tensor.shape[1]), int(tensor.shape[2])
+    grid = np.zeros((height * ymaps, width * xmaps, 3), dtype=np.uint8)
+    k = 0
+    for y in range(ymaps):
+        for x in range(xmaps):
+            if k >= nmaps:
+                break
+            grid[y * height: (y + 1) * height,
+                 x * width: (x + 1) * width] = tensor[k]
+            k = k + 1
+    return grid
 
 # z0 = torch.randn(2, 12)
 # z1 = torch.randn(2, 12)
