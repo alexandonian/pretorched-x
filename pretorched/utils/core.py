@@ -1,4 +1,5 @@
 import atexit
+import functools
 import hashlib
 import os
 import re
@@ -225,7 +226,10 @@ def func_args(func) -> Collection[str]:
     try:
         code = func.__code__
     except AttributeError:
-        code = func.__init__.__code__
+        if isinstance(func, functools.partial):
+            return func_args(func.func)
+        else:
+            code = func.__init__.__code__
     return code.co_varnames[:code.co_argcount]
 
 
