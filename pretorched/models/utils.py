@@ -264,3 +264,37 @@ class IntermediateLayerGetter(nn.ModuleDict):
                 out_name = self.return_layers[name]
                 out[out_name] = x
         return out
+
+
+def elastic_forward(model, input):
+    error_msg = 'CUDA out of memory.'
+
+    def chunked_forward(f, x, chunk_size=1):
+        return torch.cat([f(xc.contiguous()).detach() for xc in x.chunk(chunk_size)])
+
+    # def _chunked_forward(f, x, chunk_size=1):
+    #     out = []
+    #     for xc in torch.chunk(x, chunk_size):
+    #         print(xc.shape)
+    #         o = f(xc).detach().cpu()
+    #         out.append(o)
+    #     return torch.cat(out)
+        # return torch.cat([f(xc.contiguous()) for xc in torch.chunk(x, chunk_size)])
+
+    cs, fit = 1, False
+    while not fit:
+        try:
+            print(f'chunk_size: {cs}')
+            return chunked_forward(model, input.contiguous(), cs)
+        except RuntimeError as e:
+            print(str(e))
+            if error_msg in str(e):
+                print('| WARNING: ran out of memory, retrying batch')
+                for p in model.parameters():
+                    if p.grad is not None:
+                        del p.grad  # free some memory
+                torch.cuda.empty_cache()
+                # cs += 1
+                cs *= 2
+            else:
+                raise e
