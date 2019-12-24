@@ -12,8 +12,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter as P
 
-from .sync_batchnorm import SynchronizedBatchNorm2d as SyncBN2d
-
 
 def proj(x, y):
     """Projection of x onto y."""
@@ -361,10 +359,8 @@ class ccbn(nn.Module):
         # Use my batchnorm?
         self.mybn = mybn
         # Norm style?
-        self.norm_style = norm_style
-
         if self.cross_replica:
-            self.bn = SyncBN2d(output_size, eps=self.eps, momentum=self.momentum, affine=False)
+            self.bn = nn.BatchNorm2d(output_size, eps=self.eps, momentum=self.momentum, affine=False)
         elif self.mybn:
             self.bn = myBN(output_size, self.eps, self.momentum)
         elif self.norm_style in ['bn', 'in']:
@@ -375,10 +371,13 @@ class ccbn(nn.Module):
         # Calculate class-conditional gains and biases
         gain = (1 + self.gain(y)).view(y.size(0), -1, 1, 1)
         bias = self.bias(y).view(y.size(0), -1, 1, 1)
-        # If using my batchnorm
-        if self.mybn or self.cross_replica:
+
+        if self.cross_replica:
+            return self.bn(x) * gain + bias
+
+        if self.mybn:  # If using my batchnorm
             return self.bn(x, gain=gain, bias=bias)
-        # else:
+
         else:
             if self.norm_style == 'bn':
                 out = F.batch_norm(x, self.stored_mean, self.stored_var, None, None,
@@ -418,7 +417,7 @@ class bn(nn.Module):
         self.mybn = mybn
 
         if self.cross_replica:
-            self.bn = SyncBN2d(output_size, eps=self.eps, momentum=self.momentum, affine=False)
+            self.bn = nn.BatchNorm2d(output_size, eps=self.eps, momentum=self.momentum, affine=False)
         elif mybn:
             self.bn = myBN(output_size, self.eps, self.momentum)
         else:
@@ -430,7 +429,10 @@ class bn(nn.Module):
         if self.cross_replica or self.mybn:
             gain = self.gain.view(1, -1, 1, 1)
             bias = self.bias.view(1, -1, 1, 1)
-            return self.bn(x, gain=gain, bias=bias)
+            if self.cross_replica:
+                return self.bn(x) * gain + bias
+            else:
+                return self.bn(x, gain=gain, bias=bias)
         else:
             return F.batch_norm(x, self.stored_mean, self.stored_var, self.gain,
                                 self.bias, self.training, self.momentum, self.eps)
