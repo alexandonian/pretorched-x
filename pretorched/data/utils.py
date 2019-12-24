@@ -131,6 +131,7 @@ def extract_frames(video, video_root='', frame_root='', tmpl='{:06d}.jpg', fps=2
         .input(in_filename)
         .filter('fps', fps=fps, round='up')
         .output(out_filename)
+        .global_args('-loglevel', 'error')
         .run()
     )
 
