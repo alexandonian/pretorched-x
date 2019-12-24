@@ -79,6 +79,9 @@ def from_state_dict(state_dict):
 
 
 class ProgressiveGenerator(nn.Sequential):
+
+    z_dim = 512
+
     def __init__(self, resolution=None, sizes=None, modify_sequence=None,
                  output_tanh=True):
         '''
@@ -143,6 +146,10 @@ class ProgressiveGenerator(nn.Sequential):
         # Convert vector input to 1x1 featuremap.
         x = x.view(x.shape[0], x.shape[1], 1, 1)
         return super().forward(x)
+
+    @property
+    def dim_z(self):
+        return self.z_dim
 
 
 class PixelNormLayer(nn.Module):

@@ -18,6 +18,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+DIM_Z = collections.defaultdict(lambda: 512)
+
 FULL_RESOLUTIONS = {
     'lsun_car': (512, 384),
     'ff_hq': (1024, 1024),
@@ -704,6 +706,10 @@ class G(nn.Module):
             state_dict[k] = state_dict[k].to(device).contiguous()
 
         return state_dict
+
+    @property
+    def dim_z(self):
+        return self.z_dim
 
 
 class D(nn.Module):

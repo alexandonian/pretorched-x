@@ -360,6 +360,10 @@ class Generator(nn.Module):
         # Apply batchnorm-relu-conv-tanh at output
         return torch.tanh(self.output_layer(h))
 
+    @property
+    def z_dim(self):
+        return self.dim_z
+
 
 def D_arch(ch=64, attention='64', ksize='333333', dilation='111111'):
     """Discriminator architecture, same paradigm as G's above."""
