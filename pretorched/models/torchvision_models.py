@@ -64,7 +64,9 @@ places365_inceptionv3_url = 'http://pretorched-x.csail.mit.edu/models/inceptionv
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
     'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-a570fcfc.pth'}
-
+hybrid1365_urls = {
+    'inceptionv3': 'http://pretorched-x.csail.mit.edu/models/inceptionv3_hybrid1365-82826a0f.pth'
+}
 input_sizes = {}
 means = {}
 stds = {}
@@ -117,6 +119,15 @@ pretrained_settings['inceptionv3'].update({
         'mean': means['inceptionv3'],
         'std': stds['inceptionv3'],
         'num_classes': 365
+    },
+    'hybrid1365': {
+        'url': hybrid1365_urls['inceptionv3'],
+        'input_space': 'RGB',
+        'input_size': input_sizes['inceptionv3'],
+        'input_range': [0, 1],
+        'mean': means['inceptionv3'],
+        'std': stds['inceptionv3'],
+        'num_classes': 1365
     }
 })
 

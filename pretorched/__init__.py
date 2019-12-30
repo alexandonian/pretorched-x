@@ -2,6 +2,7 @@ from .__version__ import __version__
 
 from . import models
 from . import datasets
+from . import loggers
 from . import transforms
 from .models.settings import pretrained_settings
 from .models.settings import model_names
