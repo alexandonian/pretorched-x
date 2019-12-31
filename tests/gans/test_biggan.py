@@ -31,6 +31,8 @@ def test_biggan(res):
 @pytest.mark.parametrize('res, pretrained, load_ema, tfhub', [
     (128, 'places365', False, False),
     (128, 'places365', True, False),
+    (256, 'places365', False, False),
+    (256, 'places365', True, False),
     (128, 'imagenet', False, False),
     (128, 'imagenet', True, False),
     (128, 'imagenet', True, True),
