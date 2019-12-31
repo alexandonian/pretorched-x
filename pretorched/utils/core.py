@@ -141,6 +141,42 @@ class HTML(object):
         return html.format(header, im_name, gif_name)
 
 
+IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm']
+
+
+def is_image_file(filename):
+    """Checks if a file is an image.
+
+    Args:
+        filename (string): path to a file
+
+    Returns:
+        bool: True if the filename ends with a known image extension
+    """
+    filename_lower = filename.lower()
+    return any(filename_lower.endswith(ext) for ext in IMG_EXTENSIONS)
+
+
+def make_html_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
+    print(root)
+    filenames = [x for x in os.listdir(root) if is_image_file(x)]
+
+    def make_page(filenames, size):
+        html = '\n'.join([
+            HTML.head(),
+            HTML.div(
+                inner='\n'.join([
+                    HTML.img(src=f, style=f'height: {size}px; width: {size}px;')
+                    for f in filenames
+                ])
+            )])
+        return html
+
+    for i, fnames in enumerate(chunks(filenames, max_per_page)):
+        with open(os.path.join(root, tmpl.format(i)), 'w') as f:
+            f.write(make_page(fnames, size))
+
+
 def get_grad_hook(name):
     def hook(m, grad_in, grad_out):
         print((name, grad_out[0].data.abs().mean(), grad_in[0].data.abs().mean()))
