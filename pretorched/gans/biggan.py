@@ -602,6 +602,12 @@ model_urls = {
             'G_ema': os.path.join(root_url, 'biggan128_G_ema_places365-78c78abe.pth'),
             'state_dict': os.path.join(root_url, 'biggan128_state_dict_places365-3d39f6bb.pth')
         },
+        256: {
+            'D': os.path.join(root_url, 'biggan256_D_places365-44bf2902.pth'),
+            'G': os.path.join(root_url, 'biggan256_G_places365-5adac787.pth'),
+            'G_ema': os.path.join(root_url, 'biggan256_G_ema_places365-ac277771.pth'),
+            'state_dict': os.path.join(root_url, 'biggan256_state_dict_places365-b4f6daf6.pth'),
+        },
     },
     'imagenet': {
         128: {
