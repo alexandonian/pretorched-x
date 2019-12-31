@@ -359,6 +359,8 @@ class ccbn(nn.Module):
         # Use my batchnorm?
         self.mybn = mybn
         # Norm style?
+        self.norm_style = norm_style
+
         if self.cross_replica:
             self.bn = nn.BatchNorm2d(output_size, eps=self.eps, momentum=self.momentum, affine=False)
         elif self.mybn:
