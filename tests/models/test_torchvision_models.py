@@ -24,7 +24,8 @@ pretrained_list = ['imagenet']
 def test_model_forward(name, pretrained, input):
     model_func = getattr(models, name)
     model = model_func(pretrained=pretrained).to(device)
-    out = model(input)
+    out = model(input(name))
+    out = out[0] if name in ['inceptionv3'] else out
     assert tuple(out.shape) == (TEST_BATCH_SIZE, 1000)
 
 
@@ -35,10 +36,18 @@ def test_model_forward(name, pretrained, input):
 def test_model_features(name, pretrained, input):
     model_func = getattr(models, name)
     model = model_func(pretrained=pretrained).to(device)
-    out = model.features(input)
+    out = model.features(input(name))
     print(f'out: {out.shape}')
 
 
 @pytest.fixture
-def input():
+def _input():
     return torch.randn(TEST_BATCH_SIZE, 3, 224, 224).to(device)
+
+
+@pytest.fixture
+def input():
+    def _input(name):
+        size = 299 if name in ['inceptionv3'] else 224
+        return torch.randn(TEST_BATCH_SIZE, 3, size, size).to(device)
+    return _input
