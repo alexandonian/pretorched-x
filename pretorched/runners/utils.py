@@ -30,15 +30,21 @@ class ProgressMeter(object):
         self.meters = meters
         self.prefix = prefix
 
-    def display(self, batch):
+    def display(self, batch, verbose=True):
         entries = [self.prefix + self.batch_fmtstr.format(batch)]
         entries += [str(meter) for meter in self.meters]
-        print('\t'.join(entries))
+        msg = '\t'.join(entries)
+        print(msg) if verbose else None
+        return msg
 
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+
+    def reset(self):
+        for meter in self.meters:
+            meter.reset()
 
 
 class MovingAverage(object):
