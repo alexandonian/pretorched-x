@@ -1,4 +1,4 @@
-# Pretrained image and video models for Pytorch (Work in progress)
+# Pretrained image and video convnets and GANs for Pytorch (in development)
 
 The goal of this repo is:
 
@@ -95,6 +95,9 @@ News:
         - [model.features](https://github.com/alexandonian/pretorched-x#modelfeatures)
         - [model.logits](https://github.com/alexandonian/pretorched-x#modellogits)
         - [model.forward](https://github.com/alexandonian/pretorched-x#modelforward)
+    - [Available GANs](https://github.com/alexandonian/pretorched-x#available-gans)
+        - [BigGAN](https://github.com/alexandonian/pretorched-x#biggan)
+        - [StyleGAN](https://github.com/alexandonian/pretorched-x#stylegan)
 - [Reproducing porting](https://github.com/alexandonian/pretorched-x#reproducing)
     - [ResNet*](https://github.com/alexandonian/pretorched-x#hand-porting-of-resnet152)
     - [ResNeXt*](https://github.com/alexandonian/pretorched-x#automatic-porting-of-resnext)
@@ -545,6 +548,29 @@ model.last_linear = pretrained.utils.Identity()
 output = model(input_224)
 print(output.size())               # (1,2048)
 ```
+## Available GANs
+
+#### BigGAN
+
+Source: [BigGAN-PyTorch repo](https://github.com/ajbrock/BigGAN-PyTorch)
+
+- `BigGAN(resolution=128, pretrained='imagenet', tfhub=False)`
+- `BigGAN(resolution=128, pretrained='imagenet', tfhub=True)`
+- `BigGAN(resolution=256, pretrained='imagenet', tfhub=True)`
+- `BigGAN(resolution=512, pretrained='imagenet', tfhub=True)`
+
+- `BigGAN(resolution=128, pretrained='places365')`
+- `BigGAN(resolution=256, pretrained='places365')`
+
+#### StyleGAN
+
+Source: [StyleGAN repo](https://github.com/NVlabs/stylegan)
+
+- `stylegan(pretrained='ff_hq')`
+- `stylegan(pretrained='celeba_hq')`
+- `stylegan(pretrained='lsun_bedroom')`
+- `stylegan(pretrained='lsun_car')`
+- `stylegan(pretrained='lsun_cat')`
 
 ## Reproducing
 
