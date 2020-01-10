@@ -85,3 +85,5 @@ from .soundnet import soundnet8
 from .memnet import memnet
 
 from .utils import Identity
+
+from .detection import facenet
