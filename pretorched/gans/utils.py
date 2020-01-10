@@ -179,3 +179,25 @@ def prepare_z_y(G_batch_size, dim_z, nclasses, device='cuda',
 def denorm(x):
     out = (x + 1) / 2
     return out.clamp_(0, 1) * 255
+
+
+def elastic_gan(model, *input):
+    error_msg = 'CUDA out of memory.'
+
+    def chunked_forward(f, *x, chunk_size=1):
+        out = []
+        for xcs in zip(*[xc.chunk(chunk_size) for xc in x]):
+            o = f(*xcs).detach()
+            out.append(o)
+        return torch.cat(out)
+
+    cs, fit = 1, False
+    while not fit:
+        try:
+            return chunked_forward(model, *input, chunk_size=cs)
+        except RuntimeError as e:
+            if error_msg in str(e):
+                torch.cuda.empty_cache()
+                cs *= 2
+            else:
+                raise e
