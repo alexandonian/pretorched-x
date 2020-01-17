@@ -597,30 +597,43 @@ tfhub_urls = {
 model_urls = {
     'places365': {
         128: {
-            'D': os.path.join(root_url, 'biggan128_D_places365-8afb2a4d.pth'),
-            'G': os.path.join(root_url, 'biggan128_G_places365-43cd58c0.pth'),
-            'G_ema': os.path.join(root_url, 'biggan128_G_ema_places365-78c78abe.pth'),
-            'state_dict': os.path.join(root_url, 'biggan128_state_dict_places365-3d39f6bb.pth')
-        },
+            96: {
+                'D': os.path.join(root_url, 'biggan128_D_places365-8afb2a4d.pth'),
+                'G': os.path.join(root_url, 'biggan128_G_places365-43cd58c0.pth'),
+                'G_ema': os.path.join(root_url, 'biggan128_G_ema_places365-78c78abe.pth'),
+                'state_dict': os.path.join(root_url, 'biggan128_state_dict_places365-3d39f6bb.pth')
+            }},
         256: {
-            'D': os.path.join(root_url, 'biggan256_D_places365-44bf2902.pth'),
-            'G': os.path.join(root_url, 'biggan256_G_places365-5adac787.pth'),
-            'G_ema': os.path.join(root_url, 'biggan256_G_ema_places365-ac277771.pth'),
-            'state_dict': os.path.join(root_url, 'biggan256_state_dict_places365-b4f6daf6.pth'),
-        },
+            96: {
+                'D': os.path.join(root_url, 'biggan256_D_ch96_places365-44bf2902.pth'),
+                'G': os.path.join(root_url, 'biggan256_G_ch96_places365-5adac787.pth'),
+                'G_ema': os.path.join(root_url, 'biggan256_G_ema_ch96_places365-ac277771.pth'),
+                'state_dict': os.path.join(root_url, 'biggan256_state_dict_ch96_places365-b4f6daf6.pth'),
+            },
+            128: {
+                'D': os.path.join(root_url, 'biggan256_D_ch128_places365-a6f7d3b6.pth'),
+                'G': os.path.join(root_url, 'biggan256_G_ch128_places365-47f6e48c.pth'),
+                'G_ema': os.path.join(root_url, 'biggan256_G_ema_ch128_places365-6fb66feb.pth'),
+                'state_dict': os.path.join(root_url, 'biggan256_state_dict_ch128_places365-7594847d.pth'),
+            }},
     },
     'imagenet': {
         128: {
-            'D': os.path.join(root_url, 'biggan128_D_imagenet-9fd72e50.pth'),
-            'G': os.path.join(root_url, 'biggan128_G_imagenet-94e0b761.pth'),
-            'G_ema': os.path.join(root_url, 'biggan128_G_ema_imagenet-c9706dfb.pth'),
-            'state_dict': os.path.join(root_url, 'biggan128_state_dict_imagenet-4aad5089.pth'),
-        },
+            96: {
+                'D': os.path.join(root_url, 'biggan128_D_imagenet-9fd72e50.pth'),
+                'G': os.path.join(root_url, 'biggan128_G_imagenet-94e0b761.pth'),
+                'G_ema': os.path.join(root_url, 'biggan128_G_ema_imagenet-c9706dfb.pth'),
+                'state_dict': os.path.join(root_url, 'biggan128_state_dict_imagenet-4aad5089.pth'),
+            }},
     }
 }
 
 
-def BigGAN(resolution=256, pretrained='imagenet', load_ema=True, tfhub=True):
+def BigGAN(resolution=256, pretrained='imagenet', load_ema=True, tfhub=True, ch=128):
+
+    if resolution == 128:
+        # Set default for now.
+        ch = 96
 
     attn = {128: '64', 256: '128', 512: '64'}
     dim_z = {128: 120, 256: 140, 512: 128}
@@ -652,8 +665,8 @@ def BigGAN(resolution=256, pretrained='imagenet', load_ema=True, tfhub=True):
         G.eval()
         return G
     elif pretrained is not None:
-        url = model_urls[pretrained][resolution][version]
-        sd_url = model_urls[pretrained][resolution]['state_dict']
+        url = model_urls[pretrained][resolution][ch][version]
+        sd_url = model_urls[pretrained][resolution][ch]['state_dict']
         weights = torch.hub.load_state_dict_from_url(url)
         state_dict = torch.hub.load_state_dict_from_url(sd_url)
         G = Generator(**state_dict['config'])
