@@ -207,7 +207,7 @@ def class_accuracy(prediction, label):
     return cls_acc, mean_cls_acc
 
 
-def chunks(l, n):
+def chunk(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i:i + n]
