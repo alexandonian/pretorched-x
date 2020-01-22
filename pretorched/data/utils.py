@@ -315,3 +315,14 @@ def videos_to_collages(video_root, collage_root, num_workers=100):
     random.shuffle(videos)
     pool = Pool(num_workers)
     pool.map(_videos_to_collages, videos)
+
+
+def frames_to_video(input, output, pattern_type='glob', framerate=30,
+                    vcodec='mpeg4'):
+    (
+        ffmpeg
+        .input(input, pattern_type=pattern_type, framerate=framerate)
+        .output(output, vcodec=vcodec)
+        .global_args('-loglevel', 'error', '-n')
+        .run()
+    )
