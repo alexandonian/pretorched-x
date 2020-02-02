@@ -14,6 +14,7 @@ num_classes_dict = {
     'ImageNet': 1000,
     'Places365': 365,
     'Hybrid1365': 1365,
+    'Moments': 339,
 }
 
 root_dirs = {
@@ -53,6 +54,46 @@ def get_root_dirs(name, dataset_type='ImageHDF5', resolution=128, data_root=DATA
     return root_dirs[name][dataset_type][resolution]
 
 
+def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_set_type='RecordSet', resolution=224, data_root=DATA_ROOT):
+    root_dirs = {
+        'DFDC': {
+            'DeepfakeVideo': defaultdict(lambda: os.path.join(data_root, 'DeepfakeDetection/videos'), {}),
+            'DeepfakeFaceVideo': defaultdict(lambda: os.path.join(data_root, 'DeepfakeDetection/facenet_smooth_frames'), {}),
+            'DeepfakeFrame': defaultdict(lambda: os.path.join(data_root, 'DeepfakeDetection/frames'), {}),
+            'DeepfakeFaceFrame': defaultdict(lambda: os.path.join(data_root, 'DeepfakeDetection/facenet_frames'), {}),
+            'DeepfakeFaceCropFrame': defaultdict(lambda: os.path.join(data_root, 'DeepfakeDetection/frames'), {}),
+        },
+        'ImageNet': {
+            'ImageHDF5': defaultdict(lambda: os.path.join(data_root, 'ImageNet'), {}),
+            'ImageFolder': defaultdict(lambda: os.path.join(data_root, 'ImageNet'), {}),
+        },
+        'Places365': {
+            'ImageHDF5': defaultdict(lambda: os.path.join(data_root, 'Places365'), {}),
+            'ImageFolder': defaultdict(lambda: os.path.join(data_root, 'Places365'), {}),
+        },
+        'Hybrid1365': {
+            'ImageHDF5': defaultdict(lambda: data_root, {}),
+            'ImageFolder': defaultdict(lambda: data_root, {}),
+        },
+        'Moments': {
+            'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+        }
+    }
+    root = root_dirs[name][dataset_type][resolution]
+    fname = {
+        'train': 'train.txt',
+        'val': 'val.txt'
+    }.get(split, 'train')
+    metafiles = {
+        'Moments': {
+            'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Moments', fname), {}),
+        },
+    }
+    metafile = metafiles[name][record_set_type][resolution]
+
+    return {'root': root, 'metafile': metafile}
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch Training')
     parser.add_argument('--dataset', type=str, default='ImageNet')
@@ -68,6 +109,9 @@ def parse_args():
     parser.add_argument('--optimizer', type=str, default='Adam')
     parser.add_argument('--scheduler', type=str, default='CosineAnnealingLR')
     parser.add_argument('--init', type=str, default='ortho')
+    parser.add_argument('--dataset_type', type=str, default='ImageFolder')
+    parser.add_argument('--record_set_type', type=str, default='RecordSet')
+    parser.add_argument('--segment_count', type=int, default=16)
 
     parser.add_argument('-j', '--num_workers', default=12, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
