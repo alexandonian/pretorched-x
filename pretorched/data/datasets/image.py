@@ -13,7 +13,7 @@ class ImageDataset(data.Dataset):
         self.metafile = metafile
         self.transform = transform
         self.target_transform = target_transform
-        self.imgs = self._make_dataset()
+        self.imgs, self.classes = self._make_dataset()
 
         if len(self.imgs) == 0:
             raise(RuntimeError("Found 0 files in subfolders of: " + root + "\n"
@@ -21,13 +21,16 @@ class ImageDataset(data.Dataset):
 
     def _make_dataset(self):
         imgs = []
+        classes = set()
         with open(self.metafile) as f:
             for line in f.readlines():
                 filename, target = line.strip().split(' ')
+                target = int(target)
                 path = os.path.join(self.root, filename)
                 if any(path.endswith(ext) for ext in self.extensions):
                     imgs.append((path, target))
-        return imgs
+                    classes.add(target)
+        return imgs, classes
 
     def __len__(self):
         return len(self.imgs)
@@ -49,6 +52,7 @@ class ImageDataset(data.Dataset):
     def __repr__(self):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
         fmt_str += '  Number of datapoints: {}\n'.format(len(self.imgs))
+        fmt_str += '  Number of classes: {}\n'.format(len(self.classes))
         fmt_str += '  Image list: {}\n'.format(self.metafile)
         tmp = '  Transforms (if any): '
         fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
@@ -80,6 +84,7 @@ class ImageFolder(ImageDataset):
         classes = set()
         with open(self.metafile) as f:
             for line in f.readlines():
+                filename, target = line.strip().split(' ')
                 classes.add(line.strip().split('/')[-2])
         classes = sorted(classes)
         class_to_idx = {c: i for i, c in enumerate(classes)}
