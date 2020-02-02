@@ -15,6 +15,7 @@ num_classes_dict = {
     'Places365': 365,
     'Hybrid1365': 1365,
     'Moments': 339,
+    'Kinetics', 400,
 }
 
 root_dirs = {
@@ -112,6 +113,7 @@ def parse_args():
     parser.add_argument('--dataset_type', type=str, default='ImageFolder')
     parser.add_argument('--record_set_type', type=str, default='RecordSet')
     parser.add_argument('--segment_count', type=int, default=16)
+    parser.add_argument('--version', type=int, default=0)
 
     parser.add_argument('-j', '--num_workers', default=12, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
