@@ -264,7 +264,7 @@ class Blur2d(nn.Module):
                 return x[:, :, ::self.stride, ::self.stride]
         else:
             b, nc, h, w = x.size()
-            y = F.conv2d(x.view(-1, 1, h, w), self.kernel, bias=None, stride=self.stride, padding=self.padding)
+            y = F.conv2d(x.reshape(-1, 1, h, w), self.kernel, bias=None, stride=self.stride, padding=self.padding)
             return y.view(b, nc, y.size(2), y.size(3))
 
 
