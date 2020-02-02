@@ -600,8 +600,9 @@ def modify_squeezenets(model):
         return x
 
     def forward(self, input):
+        bs = input.size(0)
         x = self.features(input)
-        x = self.logits(x)
+        x = self.logits(x).view(bs, -1)
         return x
 
     # Modify methods
