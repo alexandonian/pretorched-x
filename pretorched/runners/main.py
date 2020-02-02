@@ -151,7 +151,10 @@ def main_worker(gpu, ngpus_per_node, args):
             best_acc1 = checkpoint['best_acc1']
             if args.gpu is not None:
                 # best_acc1 may be from a checkpoint from a different GPU
-                best_acc1 = best_acc1.to(args.gpu)
+                try:
+                    best_acc1 = best_acc1.to(args.gpu)
+                except AttributeError:
+                    pass
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
@@ -163,6 +166,9 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # Data loading code
     dataloaders = core.get_dataloaders(args.dataset, args.data_root,
+                                       dataset_type=args.dataset_type,
+                                       record_set_type=args.record_set_type,
+                                       segment_count=args.segment_count,
                                        batch_size=args.batch_size,
                                        num_workers=args.num_workers,
                                        distributed=args.distributed,

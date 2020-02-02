@@ -318,12 +318,11 @@ def videos_to_collages(video_root, collage_root, num_workers=100):
 
 
 def frames_to_video(input, output, pattern_type='glob', framerate=30,
-                    vcodec='mpeg4'):
+                    vcodec='libx264'):
     (
         ffmpeg
         .input(input, pattern_type=pattern_type, framerate=framerate)
-        .output(output, vcodec=vcodec)
+        .output(output, vcodec=vcodec, )
         .global_args('-loglevel', 'error', '-n')
         .run()
     )
-

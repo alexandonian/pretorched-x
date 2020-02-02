@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from pretorched import data, models, optim, utils
-from pretorched.data import transforms
+from pretorched.data import transforms, samplers
 
 from . import config as cfg
 
@@ -128,6 +128,29 @@ def get_transform(name='ImageNet', split='train', size=224, resolution=256,
     return data_transforms.get(split)
 
 
+def get_video_transform(name='Moments', split='train', size=224, resolution=256,
+                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
+                        normalize=True, degrees=25):
+    norm = transforms.NormalizeVideo(mean=mean, std=std)
+    cropping = {
+        'train': transforms.Compose([
+            transforms.RandomResizedCropVideo(size),
+            transforms.RandomHorizontalFlipVideo(),
+            transforms.RandomRotationVideo(degrees)]),
+        'val': transforms.Compose([
+            transforms.ResizeVideo(resolution),
+            transforms.CenterCropVideo(size),
+        ])
+    }.get(split, 'val')
+    transform = transforms.Compose([
+        cropping,
+        transforms.CollectFrames(),
+        transforms.PILVideoToTensor(),
+        norm if normalize else transforms.IdentityTransform(),
+    ])
+    return transform
+
+
 def get_dataset(name, root, split='train', size=224, resolution=256,
                 dataset_type='ImageFolder', **kwargs):
 
@@ -139,6 +162,44 @@ def get_dataset(name, root, split='train', size=224, resolution=256,
               **kwargs}
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, kwargs)
     return Dataset(**dataset_kwargs)
+
+
+def get_video_dataloader(name, data_root=None, split='train', num_frames=16, size=224, resolution=256,
+                         dataset_type='VideoRecordDataset', sampler_type='TSNFrameSampler', record_set_type='RecordSet',
+                         batch_size=64, num_workers=8, shuffle=True, load_in_mem=False, pin_memory=True, drop_last=False,
+                         distributed=False, segment_count=None,
+                         **kwargs):
+
+    segment_count = num_frames if segment_count is None else segment_count
+
+    metadata = cfg.get_metadata(name,
+                                split=split,
+                                dataset_type=dataset_type,
+                                record_set_type=record_set_type,
+                                data_root=data_root)
+    kwargs = {**metadata, **kwargs, 'segment_count': segment_count}
+
+    Dataset = getattr(data, dataset_type, 'VideoRecordDataset')
+    RecSet = getattr(data, record_set_type, 'RecordSet')
+    Sampler = getattr(samplers, sampler_type, 'TSNFrameSampler')
+
+    r_kwargs, _ = utils.split_kwargs_by_func(RecSet, kwargs)
+    s_kwargs, _ = utils.split_kwargs_by_func(Sampler, kwargs)
+    record_set = RecSet(**r_kwargs)
+    sampler = Sampler(**s_kwargs)
+    full_kwargs = {
+        'record_set': record_set,
+        'sampler': sampler,
+        'transform': get_video_transform(split=split, size=size),
+        **kwargs,
+    }
+    dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, full_kwargs)
+    dataset = Dataset(**dataset_kwargs)
+
+    loader_sampler = DistributedSampler(dataset) if (distributed and split == 'train') else None
+    return DataLoader(dataset, batch_size=batch_size, sampler=loader_sampler,
+                      shuffle=(sampler is None and shuffle), num_workers=num_workers,
+                      pin_memory=pin_memory, drop_last=drop_last)
 
 
 def get_hybrid_dataset(name, root, split='train', size=224, resolution=256,
@@ -163,6 +224,11 @@ def get_dataloader(name, data_root=None, split='train', size=224, resolution=256
                    dataset_type='ImageFolder', batch_size=64, num_workers=8, shuffle=True,
                    load_in_mem=False, pin_memory=True, drop_last=True, distributed=False,
                    **kwargs):
+    if name in ['Moments']:
+        return get_video_dataloader(name, data_root=data_root, split=split, size=size, resolution=resolution,
+                                    dataset_type=dataset_type, batch_size=batch_size, num_workers=num_workers,
+                                    shuffle=shuffle, load_in_mem=load_in_mem, pin_memory=pin_memory,
+                                    drop_last=drop_last, distributed=distributed, **kwargs)
     root = cfg.get_root_dirs(name, dataset_type=dataset_type,
                              resolution=resolution, data_root=data_root)
     get_dset_func = get_hybrid_dataset if name == 'Hybrid1365' else get_dataset
@@ -188,5 +254,3 @@ def get_dataloaders(name, root, dataset_type='ImageFolder', size=224, resolution
                               distributed=distributed, **kwargs)
         for split in splits}
     return dataloaders
-
-

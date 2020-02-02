@@ -159,7 +159,7 @@ def is_image_file(filename):
 
 def make_html_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
     print(root)
-    filenames = [x for x in os.listdir(root) if is_image_file(x)]
+    filenames = sorted([x for x in os.listdir(root) if is_image_file(x)])
 
     def make_page(filenames, size):
         html = '\n'.join([
@@ -172,7 +172,7 @@ def make_html_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
             )])
         return html
 
-    for i, fnames in enumerate(chunks(filenames, max_per_page)):
+    for i, fnames in enumerate(chunk(filenames, max_per_page)):
         with open(os.path.join(root, tmpl.format(i)), 'w') as f:
             f.write(make_page(fnames, size))
 
