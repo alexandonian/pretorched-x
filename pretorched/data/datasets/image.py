@@ -78,13 +78,13 @@ class ImageFolder(ImageDataset):
                 if any(path.endswith(ext) for ext in self.extensions):
                     target = self.class_to_idx[path.split('/')[-2]]
                     imgs.append((path, target))
-        return imgs
+        return imgs, self.classes
 
     def _find_classes(self):
         classes = set()
         with open(self.metafile) as f:
             for line in f.readlines():
-                filename, target = line.strip().split(' ')
+                # filename, target = line.strip().split(' ')
                 classes.add(line.strip().split('/')[-2])
         classes = sorted(classes)
         class_to_idx = {c: i for i, c in enumerate(classes)}

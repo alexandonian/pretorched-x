@@ -15,7 +15,7 @@ num_classes_dict = {
     'Places365': 365,
     'Hybrid1365': 1365,
     'Moments': 339,
-    'Kinetics', 400,
+    'Kinetics': 400,
 }
 
 root_dirs = {
