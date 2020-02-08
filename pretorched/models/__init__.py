@@ -57,6 +57,7 @@ from .senet import se_resnext101_32x4d
 from .pnasnet import pnasnet5large
 from .polynet import polynet
 
+from .i3d import i3d, i3d_flow
 from .resnet3D import resnet3d10
 from .resnet3D import resnet3d18
 from .resnet3D import resnet3d34
