@@ -372,6 +372,23 @@ class InceptionI3D(nn.Module):
             x = torch.cat((x_ch0, x_ch1, x_ch2), 1)
         return x
 
+    def forward_endpoint(self, x, endpoint):
+        if self._transform_input:
+            x = self.transform_input(x)
+        for layer_name, layer in self.layers.items():
+            x = layer(x)
+            if layer_name == endpoint:
+                return x
+        return x
+
+    def features(self, x):
+        x = self.forward_endpoint(x, 'AvgPool_5')
+        if self._spatial_squeeze:
+            x = x.squeeze(-1).squeeze(-1).squeeze(-1)
+        return x
+
+    _features = features
+
     def forward(self, x):
         if self._transform_input:
             x = self.transform_input(x)
