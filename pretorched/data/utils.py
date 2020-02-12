@@ -322,7 +322,21 @@ def frames_to_video(input, output, pattern_type='glob', framerate=30,
     (
         ffmpeg
         .input(input, pattern_type=pattern_type, framerate=framerate)
-        .output(output, vcodec=vcodec, )
+        .output(output, vcodec=vcodec)
+        .global_args('-loglevel', 'error', '-n')
+        .run()
+    )
+
+
+def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
+    size = get_size(input)
+    scale = smallest_side_size / min(*size)
+    h, w = map(int, [s * scale for s in size])
+    (
+        ffmpeg
+        .input(input)
+        .filter('scale', w, h)
+        .output(output, vcodec=vcodec)
         .global_args('-loglevel', 'error', '-n')
         .run()
     )
