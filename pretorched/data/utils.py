@@ -219,18 +219,22 @@ def frames_to_collages(frame_root, collage_root, num_threads=100):
     pool.map(func, frame_dirs)
 
 
-def get_info(filename):
+def get_info(filename, strict=False):
     try:
         probe = ffmpeg.probe(filename)
     except ffmpeg.Error as e:
         print(e.stderr, file=sys.stderr)
-        sys.exit(1)
+        if strict:
+            sys.exit(1)
+        return {}
 
     video_stream = next((stream for stream in probe['streams']
                          if stream['codec_type'] == 'video'), None)
     if video_stream is None:
         print('No video stream found', file=sys.stderr)
-        sys.exit(1)
+        if strict:
+            sys.exit(1)
+        return {}
 
     return {
         'width': int(video_stream['width']),
@@ -331,7 +335,8 @@ def frames_to_video(input, output, pattern_type='glob', framerate=30,
 def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     size = get_size(input)
     scale = smallest_side_size / min(*size)
-    h, w = map(int, [s * scale for s in size])
+    h, w = map(int, [((s * scale) // 2) * 2 for s in size])
+    os.makedirs(os.path.dirname(output), exist_ok=True)
     (
         ffmpeg
         .input(input)
