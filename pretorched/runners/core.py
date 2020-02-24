@@ -85,7 +85,7 @@ def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **
     model_func = getattr(models, model_name)
     if pretrained is not None:
         # TODO Update THIS!
-        nc = {k.lower(): v for k, v in cfg.num_classes_dict.items()}.get(pretrained)
+        nc = {k.lower(): v for k, v in cfg.NUM_CLASSES.items()}.get(pretrained)
         model = model_func(num_classes=nc, pretrained=pretrained, **kwargs)
         if nc != num_classes:
             in_feat = model.last_linear.in_features

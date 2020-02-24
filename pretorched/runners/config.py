@@ -10,11 +10,12 @@ model_names = sorted(name for name in models.__dict__
 
 DATA_ROOT = os.getenv('DATA_ROOT')
 
-num_classes_dict = {
+NUM_CLASSES = {
     'ImageNet': 1000,
     'Places365': 365,
     'Hybrid1365': 1365,
     'Moments': 339,
+    'MultiMoments': 313,
     'Kinetics': 400,
 }
 
@@ -164,5 +165,5 @@ def parse_args():
 
     if args.data_root is None:
         args.data_root = DATA_ROOT
-    args.num_classes = num_classes_dict[args.dataset]
+    args.num_classes = NUM_CLASSES[args.dataset]
     return args
