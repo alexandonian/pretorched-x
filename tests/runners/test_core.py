@@ -6,7 +6,7 @@ from pretorched.runners import core, config as cfg
 
 DATA_ROOT = cfg.DATA_ROOT
 MAX_ITERS = 10
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 
 @pytest.mark.parametrize('name, split, size, dataset_type', [
@@ -70,12 +70,30 @@ def test_get_dataloader(name, split, size, dataset_type):
     ('Moments', 'train', 16, 224, 'VideoRecordDataset'),
     ('Moments', 'val', 16, 224, 'VideoRecordDataset'),
 ])
+def test_get_video_dataset(name, split, segment_count, size, dataset_type):
+
+    dataset = core.get_video_dataset(
+        name, data_root=DATA_ROOT, split=split, size=size, dataset_type=dataset_type,
+        load_in_mem=False, segment_count=segment_count)
+
+    for i, (x, y) in enumerate(dataset):
+        if i >= MAX_ITERS:
+            break
+
+        assert y < cfg.num_classes_dict[name]
+        assert x.shape == torch.Size((3, segment_count, size, size))
+
+
+@pytest.mark.parametrize('name, split, segment_count, size, dataset_type', [
+    ('Moments', 'train', 16, 224, 'VideoRecordDataset'),
+    ('Moments', 'val', 16, 224, 'VideoRecordDataset'),
+])
 def test_get_video_dataloader(name, split, segment_count, size, dataset_type):
 
     loader = core.get_video_dataloader(
         name, data_root=DATA_ROOT, split=split, size=size, dataset_type=dataset_type,
-        batch_size=BATCH_SIZE, num_workers=4, shuffle=True, load_in_mem=False, pin_memory=True,
-        drop_last=True, distributed=False, segment_count=segment_count)
+        batch_size=BATCH_SIZE, num_workers=8, shuffle=True, load_in_mem=False, pin_memory=True,
+        drop_last=False, distributed=False, segment_count=segment_count)
 
     for i, (x, y) in enumerate(loader):
         if i >= MAX_ITERS:
