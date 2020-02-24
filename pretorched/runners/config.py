@@ -78,7 +78,10 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
         },
         'Moments': {
             'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
-        }
+        },
+        'MultiMoments': {
+            'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+        },
     }
     root = root_dirs[name][dataset_type][resolution]
     fname = {

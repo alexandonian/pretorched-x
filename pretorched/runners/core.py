@@ -130,13 +130,13 @@ def get_transform(name='ImageNet', split='train', size=224, resolution=256,
 
 def get_video_transform(name='Moments', split='train', size=224, resolution=256,
                         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
-                        normalize=True, degrees=25):
+                        normalize=True):
     norm = transforms.NormalizeVideo(mean=mean, std=std)
     cropping = {
         'train': transforms.Compose([
             transforms.RandomResizedCropVideo(size),
             transforms.RandomHorizontalFlipVideo(),
-            transforms.RandomRotationVideo(degrees)]),
+        ]),
         'val': transforms.Compose([
             transforms.ResizeVideo(resolution),
             transforms.CenterCropVideo(size),
@@ -162,6 +162,38 @@ def get_dataset(name, root, split='train', size=224, resolution=256,
               **kwargs}
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, kwargs)
     return Dataset(**dataset_kwargs)
+
+
+def get_video_dataset(name, data_root=None, split='train', num_frames=16, size=224, resolution=256,
+                      dataset_type='VideoRecordDataset', sampler_type='TSNFrameSampler', record_set_type='RecordSet',
+                      load_in_mem=False, segment_count=None, **kwargs):
+
+    segment_count = num_frames if segment_count is None else segment_count
+
+    metadata = cfg.get_metadata(name,
+                                split=split,
+                                dataset_type=dataset_type,
+                                record_set_type=record_set_type,
+                                data_root=data_root)
+    kwargs = {**metadata, **kwargs, 'segment_count': segment_count}
+
+    Dataset = getattr(data, dataset_type, 'VideoRecordDataset')
+    RecSet = getattr(data, record_set_type, 'RecordSet')
+    Sampler = getattr(samplers, sampler_type, 'TSNFrameSampler')
+
+    r_kwargs, _ = utils.split_kwargs_by_func(RecSet, kwargs)
+    s_kwargs, _ = utils.split_kwargs_by_func(Sampler, kwargs)
+    record_set = RecSet(**r_kwargs)
+    sampler = Sampler(**s_kwargs)
+    full_kwargs = {
+        'record_set': record_set,
+        'sampler': sampler,
+        'transform': get_video_transform(split=split, size=size),
+        **kwargs,
+    }
+    dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, full_kwargs)
+    dataset = Dataset(**dataset_kwargs)
+    return dataset
 
 
 def get_video_dataloader(name, data_root=None, split='train', num_frames=16, size=224, resolution=256,
