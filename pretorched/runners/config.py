@@ -17,6 +17,7 @@ NUM_CLASSES = {
     'Moments': 339,
     'MultiMoments': 313,
     'Kinetics': 400,
+    'Kinetics-400': 400,
 }
 
 root_dirs = {
@@ -79,19 +80,33 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
         },
         'Moments': {
             'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+            'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
         },
         'MultiMoments': {
             'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+            'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+        },
+        'Kinetics': {
+            'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Kinetics/videos')),
+            'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Kinetics/videos')),
         },
     }
     root = root_dirs[name][dataset_type][resolution]
     fname = {
-        'train': 'train.txt',
-        'val': 'val.txt'
+        'train': f'{name.lower()}_training.json',
+        'val': f'{name.lower()}_validation.json',
     }.get(split, 'train')
+
     metafiles = {
         'Moments': {
             'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Moments', fname), {}),
+        },
+        'Kinetics': {
+            'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Kinetics', fname), {}),
+        },
+        'MultiMoments': {
+            'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Moments', fname), {}),
+            'MultiLabelRecordSet': defaultdict(lambda: os.path.join(data_root, 'Moments', fname), {}),
         },
     }
     metafile = metafiles[name][record_set_type][resolution]
