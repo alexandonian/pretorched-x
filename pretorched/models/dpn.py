@@ -7,13 +7,14 @@ many ideas from another PyTorch implementation https://github.com/oyam/pytorch-D
 This implementation is compatible with the pretrained weights
 from cypw's MXNet implementation.
 """
-from __future__ import print_function, division, absolute_import
-import os
+from __future__ import absolute_import, division, print_function
+
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
-from collections import OrderedDict
 
 __all__ = ['DPN', 'dpn68', 'dpn68b', 'dpn92', 'dpn98', 'dpn131', 'dpn107']
 
@@ -95,6 +96,7 @@ pretrained_settings = {
     }
 }
 
+
 def dpn68(num_classes=1000, pretrained='imagenet'):
     model = DPN(
         small=True, num_init_features=10, k_r=128, groups=32,
@@ -112,6 +114,7 @@ def dpn68(num_classes=1000, pretrained='imagenet'):
         model.mean = settings['mean']
         model.std = settings['std']
     return model
+
 
 def dpn68b(num_classes=1000, pretrained='imagenet+5k'):
     model = DPN(
@@ -131,6 +134,7 @@ def dpn68b(num_classes=1000, pretrained='imagenet+5k'):
         model.std = settings['std']
     return model
 
+
 def dpn92(num_classes=1000, pretrained='imagenet+5k'):
     model = DPN(
         num_init_features=64, k_r=96, groups=32,
@@ -148,6 +152,7 @@ def dpn92(num_classes=1000, pretrained='imagenet+5k'):
         model.mean = settings['mean']
         model.std = settings['std']
     return model
+
 
 def dpn98(num_classes=1000, pretrained='imagenet'):
     model = DPN(
@@ -167,6 +172,7 @@ def dpn98(num_classes=1000, pretrained='imagenet'):
         model.std = settings['std']
     return model
 
+
 def dpn131(num_classes=1000, pretrained='imagenet'):
     model = DPN(
         num_init_features=128, k_r=160, groups=40,
@@ -184,6 +190,7 @@ def dpn131(num_classes=1000, pretrained='imagenet'):
         model.mean = settings['mean']
         model.std = settings['std']
     return model
+
 
 def dpn107(num_classes=1000, pretrained='imagenet+5k'):
     model = DPN(
@@ -252,14 +259,14 @@ class DualPathBlock(nn.Module):
         self.num_1x1_c = num_1x1_c
         self.inc = inc
         self.b = b
-        if block_type is 'proj':
+        if block_type == 'proj':
             self.key_stride = 1
             self.has_proj = True
-        elif block_type is 'down':
+        elif block_type == 'down':
             self.key_stride = 2
             self.has_proj = True
         else:
-            assert block_type is 'normal'
+            assert block_type == 'normal'
             self.key_stride = 1
             self.has_proj = False
 
@@ -388,6 +395,7 @@ class DPN(nn.Module):
         x = self.logits(x)
         return x
 
+
 """ PyTorch selectable adaptive pooling
 Adaptive pooling with the ability to select the type of pooling from:
     * 'avg' - Average pooling
@@ -399,6 +407,7 @@ Both a functional and a nn.Module version of the pooling is provided.
 
 Author: Ross Wightman (rwightman)
 """
+
 
 def pooling_factor(pool_type='avg'):
     return 2 if pool_type == 'avgmaxc' else 1
@@ -415,7 +424,7 @@ def adaptive_avgmax_pool2d(x, pool_type='avg', padding=0, count_include_pad=Fals
         ], dim=1)
     elif pool_type == 'avgmax':
         x_avg = F.avg_pool2d(
-                x, kernel_size=(x.size(2), x.size(3)), padding=padding, count_include_pad=count_include_pad)
+            x, kernel_size=(x.size(2), x.size(3)), padding=padding, count_include_pad=count_include_pad)
         x_max = F.max_pool2d(x, kernel_size=(x.size(2), x.size(3)), padding=padding)
         x = 0.5 * (x_avg + x_max)
     elif pool_type == 'max':
@@ -431,6 +440,7 @@ def adaptive_avgmax_pool2d(x, pool_type='avg', padding=0, count_include_pad=Fals
 class AdaptiveAvgMaxPool2d(torch.nn.Module):
     """Selectable global pooling layer with dynamic input kernel size
     """
+
     def __init__(self, output_size=1, pool_type='avg'):
         super(AdaptiveAvgMaxPool2d, self).__init__()
         self.output_size = output_size
@@ -458,5 +468,5 @@ class AdaptiveAvgMaxPool2d(torch.nn.Module):
 
     def __repr__(self):
         return self.__class__.__name__ + ' (' \
-               + 'output_size=' + str(self.output_size) \
-               + ', pool_type=' + self.pool_type + ')'
+            + 'output_size=' + str(self.output_size) \
+            + ', pool_type=' + self.pool_type + ')'

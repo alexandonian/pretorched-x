@@ -30,7 +30,7 @@ model_urls = {
 num_classes = {'kinetics-400': 400, 'charades': 157}
 stds = {'i3d': [0.5, 0.5, 0.5], 'i3d_flow': [0.5, 0.5, 0.5]}
 means = {'i3d': [0.5, 0.5, 0.5], 'i3d_flow': [0.5, 0.5, 0.5]}
-input_sizes = {'i3d': [3, 224, 224], 'i3d_flow': [3, 224, 224]}
+input_sizes = {'i3d': [3, 64, 224, 224], 'i3d_flow': [2, 64, 224, 224]}
 
 pretorched_settings = defaultdict(dict)
 for model_name in __all__:
@@ -248,6 +248,8 @@ class InceptionI3D(nn.Module):
         'Mixed_5c',
         'logits',
     )
+
+    input_size = [3, 64, 224, 224]
 
     def __init__(self, num_classes=400, spatial_squeeze=True, final_endpoint='logits',
                  name='inception_i3d', in_channels=3, dropout_keep_prob=1.0,

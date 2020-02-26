@@ -82,6 +82,8 @@ from .mxresnet import mxresnet50
 from .mxresnet import mxresnet101
 from .mxresnet import mxresnet152
 
+from .mobilenet import mobilenetv2
+
 from .soundnet import soundnet8
 from .memnet import memnet
 
