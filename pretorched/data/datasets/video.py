@@ -44,7 +44,7 @@ class VideoRecordDataset(VideoDataset):
         self.record_set = record_set
 
         if frame_counter is None:
-            frame_counter = _get_videofile_frame_count
+            frame_counter = StaticFrameCounter()
         self.frame_counter = frame_counter
 
         if transform is None:
@@ -55,6 +55,15 @@ class VideoRecordDataset(VideoDataset):
             target_transform = int
         self.target_transform = target_transform
         self.video_lens = {}
+
+    @staticmethod
+    def _load_frames(
+        video_file: Path,
+        frame_idx: Union[slice, List[slice], List[int]],
+    ) -> Iterator[Image]:
+        from pretorched.data.readers import default_loader
+
+        return default_loader(video_file, frame_idx)
 
     def __getitem__(self, index: int) -> Union[torch.Tensor, Tuple[torch.Tensor, int]]:
         record = self.record_set[index]
@@ -95,9 +104,9 @@ class VideoRecordZipDataset(VideoDataset):
         self.root = root
         self.zipfilenames = [z for z in os.listdir(self.root) if z.endswith('.zip')]
         self.zips = {}
-        for zfname in self.zipfilenames:
-            cat = zfname.rstrip('.zip')
-            self.zips[cat] = zipfile.ZipFile(os.path.join(root, zfname))
+        # for zfname in self.zipfilenames:
+            # cat = zfname.rstrip('.zip')
+            # self.zips[cat] = zipfile.ZipFile(os.path.join(root, zfname))
             # self.zips[cat] = zip_file
 
         self.sampler = sampler
@@ -119,7 +128,9 @@ class VideoRecordZipDataset(VideoDataset):
         record = self.record_set[index]
         video_path = record.path
         category = os.path.dirname(video_path)
-        video_path = io.BytesIO(self.zips[category].read(video_path))
+        # video_path = io.BytesIO(self.zips[category].read(video_path))
+        with zipfile.ZipFile(os.path.join(self.root, category + '.zip')) as z:
+            video_path = io.BytesIO(z.read(video_path))
         video_length = record.num_frames or self.frame_counter(video_path)
         frame_inds = self.sampler.sample(video_length)
         frames = self._load_frames(video_path, frame_inds)
