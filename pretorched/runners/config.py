@@ -8,7 +8,7 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-DATA_ROOT = os.getenv('DATA_ROOT')
+DATA_ROOT = os.getenv('DATA_ROOT', '')
 
 NUM_CLASSES = {
     'ImageNet': 1000,
@@ -140,7 +140,7 @@ def parse_args():
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
+    parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N',
                         help='mini-batch size (default: 256), this is the total '
                         'batch size of all GPUs on the current node when '
