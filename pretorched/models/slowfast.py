@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-__all__ = ['resnet18', 'resnet50', 'resnet101', 'resnet152', 'resnet200']
+__all__ = ['slowfast18', 'slowfast50', 'slowfast101', 'slowfast152', 'slowfast200']
 
 
 class BasicBlock(nn.Module):
@@ -575,7 +575,7 @@ class SlowFastV0(nn.Module):
         return nn.Sequential(*layers)
 
 
-def resnet18(mode='SF', **kwargs):
+def slowfast18(mode='SF', pretrained=None, **kwargs):
     """Constructs a ResNet-18 model.
     """
     models = {'sf': SlowFast, 'f': FastOnly, 's': SlowOnly}
@@ -583,7 +583,7 @@ def resnet18(mode='SF', **kwargs):
     return Func(BasicBlock, [2, 2, 2, 2], **kwargs)
 
 
-def resnet50(mode='SF', **kwargs):
+def slowfast50(mode='SF', pretrained=None, **kwargs):
     """Constructs a ResNet-50 model.
     """
     models = {'sf': SlowFast, 'f': FastOnly, 's': SlowOnly}
@@ -591,25 +591,28 @@ def resnet50(mode='SF', **kwargs):
     return Func(Bottleneck, [3, 4, 6, 3], **kwargs)
 
 
-def resnet101(**kwargs):
+def slowfast101(mode='SF', pretrained=None, **kwargs):
     """Constructs a ResNet-101 model.
     """
-    model = SlowFast(Bottleneck, [3, 4, 23, 3], **kwargs)
-    return model
+    models = {'sf': SlowFast, 'f': FastOnly, 's': SlowOnly}
+    Func = models.get(mode.lower(), 'sf')
+    return Func(Bottleneck, [3, 4, 23, 3], **kwargs)
 
 
-def resnet152(**kwargs):
+def slowfast152(mode='SF', pretrained=None, **kwargs):
     """Constructs a ResNet-101 model.
     """
-    model = SlowFast(Bottleneck, [3, 8, 36, 3], **kwargs)
-    return model
+    models = {'sf': SlowFast, 'f': FastOnly, 's': SlowOnly}
+    Func = models.get(mode.lower(), 'sf')
+    return Func(Bottleneck, [3, 8, 36, 3], **kwargs)
 
 
-def resnet200(**kwargs):
+def slowfast200(mode='SF', pretrained=None, **kwargs):
     """Constructs a ResNet-101 model.
     """
-    model = SlowFast(Bottleneck, [3, 24, 36, 3], **kwargs)
-    return model
+    models = {'sf': SlowFast, 'f': FastOnly, 's': SlowOnly}
+    Func = models.get(mode.lower(), 'sf')
+    return Func(Bottleneck, [3, 24, 36, 3], **kwargs)
 
 
 if __name__ == "__main__":
