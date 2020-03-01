@@ -93,8 +93,8 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
     }
     root = root_dirs[name][dataset_type][resolution]
     fname = {
-        'train': f'{name.lower()}_training.json',
-        'val': f'{name.lower()}_validation.json',
+        'train': f'{name.lower()}_train.json',
+        'val': f'{name.lower()}_val.json',
     }.get(split, 'train')
 
     metafiles = {
