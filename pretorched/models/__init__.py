@@ -75,6 +75,12 @@ from .resnext3D import resnext3d101
 from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
 
+from .slowfast import slowfast18
+from .slowfast import slowfast50
+from .slowfast import slowfast101
+from .slowfast import slowfast152
+from .slowfast import slowfast200
+
 from .mxresnet import mxresnet18
 from .mxresnet import mxresnet34
 from .mxresnet import mxresnet50
