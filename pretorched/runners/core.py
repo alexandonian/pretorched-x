@@ -3,13 +3,14 @@ import os
 from operator import add
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 from torch.nn import init
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from pretorched import data, models, optim, utils
-from pretorched.data import transforms, samplers
+from pretorched.data import samplers, transforms
 
 from . import config as cfg
 
@@ -286,3 +287,14 @@ def get_dataloaders(name, root, dataset_type='ImageFolder', size=224, resolution
                               distributed=distributed, **kwargs)
         for split in splits}
     return dataloaders
+
+
+def get_rank(group=None):
+    try:
+        return dist.get_rank() if group is None else dist.get_rank(group)
+    except AssertionError:
+        return 0
+
+
+def is_rank0(group=None):
+    return get_rank(group) == 0
