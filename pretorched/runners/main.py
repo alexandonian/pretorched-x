@@ -70,14 +70,8 @@ def main_worker(gpu, ngpus_per_node, args):
     os.makedirs(args.weights_dir, exist_ok=True)
     os.makedirs(args.logs_dir, exist_ok=True)
 
-    save_name = '_'.join([args.arch,
-                          args.dataset.lower(),
-                          f'init-{"-".join([args.pretrained, args.init]) if args.pretrained else args.init}',
-                          f'optim-{args.optimizer}',
-                          f'lr-{args.lr}',
-                          f'sched-{args.scheduler}',
-                          f'bs-{args.batch_size}',
-                          ])
+    save_name = cfg.name_from_args(args)
+
     print(f'Starting: {save_name}')
 
     args.log_file = os.path.join(args.logs_dir, save_name + '.json')
@@ -301,12 +295,6 @@ def train(train_loader, model, criterion, optimizer, logger, epoch, args, displa
         top1.update(acc1, images.size(0))
         top5.update(acc5, images.size(0))
 
-        logger.log_metrics({
-            'Accuracy/train/top1': acc1,
-            'Accuracy/train/top5': acc5,
-            'Loss/train': loss
-        }, step=itr)
-
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
@@ -318,6 +306,11 @@ def train(train_loader, model, criterion, optimizer, logger, epoch, args, displa
 
         if i % args.print_freq == 0 and display:
             progress.display(i)
+            logger.log_metrics({
+                'Accuracy/train/top1': acc1,
+                'Accuracy/train/top5': acc5,
+                'Loss/train': loss
+            }, step=itr)
 
     return top1.avg, top5.avg, losses.avg
 
