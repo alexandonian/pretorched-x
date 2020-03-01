@@ -20,6 +20,13 @@ NUM_CLASSES = {
     'Kinetics-400': 400,
 }
 
+VIDEO_DATASETS = [
+    'Moments',
+    'MultiMoments',
+    'Kinetics',
+    'Kinetics-400',
+]
+
 root_dirs = {
     'ImageNet': os.path.join(DATA_ROOT, 'ImageNet'),
     'Places365': os.path.join(DATA_ROOT, 'Places365'),
@@ -112,6 +119,21 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
     metafile = metafiles[name][record_set_type][resolution]
 
     return {'root': root, 'metafile': metafile}
+
+
+def name_from_args(args):
+    name = '_'.join([
+        item for item in [
+            args.arch,
+            args.dataset.lower(),
+            f'seg_count-{args.segment_count}' if args.dataset in VIDEO_DATASETS else None,
+            f'init-{"-".join([args.pretrained, args.init]) if args.pretrained else args.init}',
+            f'optim-{args.optimizer}',
+            f'lr-{args.lr}',
+            f'sched-{args.scheduler}',
+            f'bs-{args.batch_size}',
+        ] if item is not None])
+    return name
 
 
 def parse_args():
