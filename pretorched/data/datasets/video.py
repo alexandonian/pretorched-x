@@ -69,11 +69,6 @@ class VideoRecordDataset(VideoDataset):
         record = self.record_set[index]
         video_path = os.path.join(self.root, record.path)
         video_length = record.num_frames or self.frame_counter(video_path)
-        # try:
-        # video_length = self.video_lens[index]
-        # except KeyError:
-        # video_length = record.num_frames or self.frame_counter(video_path)
-        # self.video_lens[index] = video_length
         frame_inds = self.sampler.sample(video_length)
         frames = self._load_frames(video_path, frame_inds)
         label = record.label
@@ -99,15 +94,12 @@ class VideoRecordZipDataset(VideoDataset):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         frame_counter: Optional[Callable[[Path], int]] = None,
+        zip_ext='.zip',
     ) -> None:
 
         self.root = root
         self.zipfilenames = [z for z in os.listdir(self.root) if z.endswith('.zip')]
-        self.zips = {}
-        # for zfname in self.zipfilenames:
-            # cat = zfname.rstrip('.zip')
-            # self.zips[cat] = zipfile.ZipFile(os.path.join(root, zfname))
-            # self.zips[cat] = zip_file
+        self.zip_ext = zip_ext
 
         self.sampler = sampler
         self.record_set = record_set
@@ -128,8 +120,7 @@ class VideoRecordZipDataset(VideoDataset):
         record = self.record_set[index]
         video_path = record.path
         category = os.path.dirname(video_path)
-        # video_path = io.BytesIO(self.zips[category].read(video_path))
-        with zipfile.ZipFile(os.path.join(self.root, category + '.zip')) as z:
+        with zipfile.ZipFile(os.path.join(self.root, category + self.zip_ext)) as z:
             video_path = io.BytesIO(z.read(video_path))
         video_length = record.num_frames or self.frame_counter(video_path)
         frame_inds = self.sampler.sample(video_length)
