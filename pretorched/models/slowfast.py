@@ -374,6 +374,7 @@ class SlowFast(nn.Module):
     Constructed from Slow and Fast nets.
 
     """
+    input_size = [3, 64, 224, 224]
 
     def __init__(self, block=Bottleneck, layers=[2, 2, 2, 2], num_classes=400,
                  dropout=0.5, slow_stride=16, fast_stride=2):
