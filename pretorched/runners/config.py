@@ -180,6 +180,7 @@ def parse_args():
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('--weights_dir', default='weights', type=str, metavar='PATH')
     parser.add_argument('--logs_dir', default='logs', type=str, metavar='PATH')
+    parser.add_argument('--features_dir', default='features', type=str, metavar='PATH')
     parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--world-size', default=-1, type=int,
