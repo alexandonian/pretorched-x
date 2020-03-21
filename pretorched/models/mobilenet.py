@@ -141,9 +141,9 @@ class MobileNetV2(nn.Module):
                 m.bias.data.zero_()
 
 
-def mobilenetv2(num_classes=1000, pretrained='imagenet'):
+def mobilenetv2(num_classes=1000, pretrained='imagenet', **kwargs):
     """Constructs mobilenetv2 model."""
-    model = MobileNetV2(num_classes=num_classes)
+    model = MobileNetV2(num_classes=num_classes, **kwargs)
     if pretrained is not None:
         settings = pretrained_settings['mobilenetv2'][pretrained]
         model = load_pretrained(model, num_classes, settings)
