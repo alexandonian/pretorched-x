@@ -461,7 +461,7 @@ def i3d(num_classes=400, pretrained='kinetics-400', **kwargs):
 
 
 def i3d_flow(num_classes=400, pretrained='kinetics-400', **kwargs):
-    model = InceptionI3D(num_classes=num_classes, in_channels=2, **kwargs)
+    model = InceptionI3D(num_classes=num_classes, in_channels=2, transform_input=False, **kwargs)
     if pretrained is not None:
         settings = pretorched_settings['i3d_flow'][pretrained]
         model = load_pretrained(model, num_classes, settings)
