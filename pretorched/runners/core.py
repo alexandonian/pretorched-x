@@ -141,6 +141,10 @@ def get_video_transform(name='Moments', split='train', size=224, resolution=256,
         'val': transforms.Compose([
             transforms.ResizeVideo(resolution),
             transforms.CenterCropVideo(size),
+        ]),
+        'test': transforms.Compose([
+            transforms.ResizeVideo(resolution),
+            transforms.CenterCropVideo(size)
         ])
     }.get(split, 'val')
     transform = transforms.Compose([

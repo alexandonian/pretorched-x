@@ -102,6 +102,7 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
     fname = {
         'train': f'{name.lower()}_train.json',
         'val': f'{name.lower()}_val.json',
+        'test': f'{name.lower()}_test.json',
     }.get(split, 'train')
 
     metafiles = {
