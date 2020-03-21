@@ -259,7 +259,11 @@ def verify_kinetics(data_root=None, num_workers=24):
             data = json.load(f)
             all_paths += [d['path'] for d in data]
 
+<<<<<<< HEAD
     # all_paths = [os.path.join(data_root, 'Kinetics', 'videos', f) for f in set(all_paths)]
+=======
+    #all_paths = [os.path.join(data_root, 'Kinetics', 'videos', f) for f in set(all_paths)]
+>>>>>>> dfda9523d1f96d9862d26dc0d5793edf10340fe4
     all_paths = [os.path.join(data_root, 'Kinetics', 'preproc_videos', f) for f in set(all_paths)]
     missing = find_missing(all_paths, num_workers=num_workers)
     return missing
@@ -273,7 +277,11 @@ def verify_full_moments(data_root=None, num_workers=24):
         for split, split_data in splits.items():
             all_paths += [x['path'] for x in split_data]
 
+<<<<<<< HEAD
     # all_paths = [os.path.join(data_root, 'Moments', 'videos', f) for f in set(all_paths)]
+=======
+    #all_paths = [os.path.join(data_root, 'Moments', 'videos', f) for f in set(all_paths)]
+>>>>>>> dfda9523d1f96d9862d26dc0d5793edf10340fe4
     all_paths = [os.path.join(data_root, 'Moments', 'preproc_videos', f) for f in set(all_paths)]
     missing = find_missing(all_paths, num_workers=num_workers)
     return missing
