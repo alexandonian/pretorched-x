@@ -9,7 +9,7 @@ from pkg_resources import parse_version
 from torch.utils.tensorboard import SummaryWriter
 
 from pretorched.utils import cache
-from .base import LoggerBase, rank_zero_only
+from .base import LoggerBase, rank_zero_only, History
 
 
 class TensorBoardLogger(LoggerBase):
@@ -43,6 +43,7 @@ class TensorBoardLogger(LoggerBase):
         self._version = version
 
         self.kwargs = kwargs
+        self.history = History()
 
     # @rank_zero_only
     @cache
@@ -80,6 +81,7 @@ class TensorBoardLogger(LoggerBase):
             if isinstance(v, torch.Tensor):
                 v = v.item()
             self.experiment.add_scalar(k, v, step)
+            self.history.add_scalar(k, v, step)
 
     @rank_zero_only
     def save(self):

@@ -1,4 +1,5 @@
 from functools import wraps
+from collections import defaultdict
 
 
 def rank_zero_only(fn):
@@ -15,15 +16,6 @@ def rank_zero_only(fn):
 
 
 class LoggerBase:
-        # batch_time = AveraeMeter('Time', ':6.3f')
-    # data_time = AverageMeter('Data', ':6.3f')
-    # losses = AverageMeter('Loss', ':.4e')
-    # top1 = AverageMeter('Acc@1', ':6.2f')
-    # top5 = AverageMeter('Acc@5', ':6.2f')
-    # progress = ProgressMeter(
-        # len(train_loader),
-        # [batch_time, data_time, losses, top1, top5],
-        # prefix="Epoch: [{}]".format(epoch))
 
     def __init__(self, logs_root='logs', comment='', filename_suffix='', rank=0):
         self.logs_root = logs_root
@@ -47,3 +39,14 @@ class LoggerBase:
         """Set the process rank."""
         self._rank = value
 
+
+class History:
+
+    def __init__(self, filename=None):
+        self.filename = filename
+        self.steps = []
+        self.scalars = defaultdict(list)
+
+    def add_scalar(self, k, v, step):
+        self.steps.append(step)
+        self.scalars[k].append(v)
