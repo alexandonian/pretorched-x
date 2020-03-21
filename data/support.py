@@ -8,6 +8,7 @@ from multiprocessing.pool import Pool, ThreadPool
 from tqdm import tqdm
 
 import pretorched.data.utils
+from pretorched.data.readers import default_loader
 from pretorched.runners import config as cfg
 
 
@@ -259,9 +260,21 @@ def verify_kinetics(data_root=None, num_workers=24):
             data = json.load(f)
             all_paths += [d['path'] for d in data]
 
-    # all_paths = [os.path.join(data_root, 'Kinetics', 'videos', f) for f in set(all_paths)]
-    all_paths = [os.path.join(data_root, 'Kinetics', 'preproc_videos', f) for f in set(all_paths)]
+    all_paths = [os.path.join(data_root, 'Kinetics', 'videos', f) for f in set(all_paths)]
     missing = find_missing(all_paths, num_workers=num_workers)
+    return missing
+
+
+def verify_load_kinetics(data_root=None, num_workers=24):
+    data_root = cfg.DATA_ROOT if data_root is None else data_root
+    all_paths = []
+    for split in ['test', 'val', 'train']:
+        with open(os.path.join(data_root, 'Kinetics', f'kinetics_{split}.json')) as f:
+            data = json.load(f)
+            all_paths += [d['path'] for d in data]
+
+    all_paths = [os.path.join(data_root, 'Kinetics', 'videos', f) for f in set(all_paths)]
+    missing = find_noload(all_paths, num_workers=num_workers)
     return missing
 
 
@@ -292,6 +305,21 @@ def find_missing(all_paths, num_workers=24):
         print(f'Num_processed: {num_proc}')
         print(f'Num missing: {len(missing)}')
     return missing
+
+
+def find_noload(all_paths, num_workers=24):
+    num_proc, noloads = 0, []
+    with Pool(num_workers) as pool:
+        for noload in pool.imap_unordered(try_load, all_paths):
+            if noload is not None:
+                print(f'Could not be loaded: {noload}')
+                noloads.append(noload)
+            num_proc += 1
+        pool.close()
+        pool.join()
+        print(f'Num_processed: {num_proc}')
+        print(f'Num noloads: {len(noloads)}')
+    return noloads
 
 
 def generate_extended_metadata(data_root=None, num_workers=48):
@@ -354,6 +382,14 @@ def get_extended_metadata(data, root, num_workers=100):
 
 def is_missing(filename):
     if not os.path.exists(filename):
+        return filename
+
+
+def try_load(filename):
+    frame_idx = list(range(0, 128, 20))
+    try:
+        list(default_loader(filename, frame_idx))
+    except Exception:
         return filename
 
 
