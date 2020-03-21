@@ -69,12 +69,22 @@ def test_get_dataloader(name, split, size, dataset_type):
 @pytest.mark.parametrize('name, split, segment_count, size, dataset_type, record_set_type', [
     ('Moments', 'train', 16, 224, 'VideoRecordDataset', 'RecordSet'),
     ('Moments', 'val', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Moments', 'test', 16, 224, 'VideoRecordDataset', 'RecordSet'),
     ('Moments', 'train', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
     ('Moments', 'val', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    ('Moments', 'test', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
     ('MultiMoments', 'train', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
     ('MultiMoments', 'val', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
+    # ('MultiMoments', 'test', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
     ('MultiMoments', 'train', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
-    ('MultiMoments', 'val', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
+    # ('MultiMoments', 'test', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
+    ('Kinetics', 'train', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Kinetics', 'val', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    # ('Kinetics', 'test', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Kinetics', 'train', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    ('Kinetics', 'val', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    # ('Kinetics', 'test', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+
 ])
 def test_get_video_dataset(name, split, segment_count, size, dataset_type, record_set_type):
 
@@ -93,12 +103,22 @@ def test_get_video_dataset(name, split, segment_count, size, dataset_type, recor
 @pytest.mark.parametrize('name, split, segment_count, size, dataset_type, record_set_type', [
     ('Moments', 'train', 16, 224, 'VideoRecordDataset', 'RecordSet'),
     ('Moments', 'val', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Moments', 'test', 16, 224, 'VideoRecordDataset', 'RecordSet'),
     ('Moments', 'train', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
     ('Moments', 'val', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    ('Moments', 'test', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
     ('MultiMoments', 'train', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
     ('MultiMoments', 'val', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
+    # ('MultiMoments', 'test', 16, 224, 'VideoRecordDataset', 'MultiLabelRecordSet'),
     ('MultiMoments', 'train', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
     ('MultiMoments', 'val', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
+    # ('MultiMoments', 'test', 16, 224, 'VideoRecordZipDataset', 'MultiLabelRecordSet'),
+    ('Kinetics', 'train', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Kinetics', 'val', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    # ('Kinetics', 'test', 16, 224, 'VideoRecordDataset', 'RecordSet'),
+    ('Kinetics', 'train', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    ('Kinetics', 'val', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
+    # ('Kinetics', 'test', 16, 224, 'VideoRecordZipDataset', 'RecordSet'),
 ])
 def test_get_video_dataloader(name, split, segment_count, size, dataset_type, record_set_type):
 
