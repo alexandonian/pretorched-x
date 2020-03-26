@@ -1,21 +1,24 @@
 import functools
-import random
-import sys
-import skimage
-import ffmpeg
-from PIL import Image
-import math
 import itertools
+import math
 import os
+import random
+import shutil
 import subprocess
+import sys
+import tempfile
 # from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing.pool import Pool as Pool
 from typing import List, Union
 
+import ffmpeg
 import numpy as np
-import torch
 import PIL
+import skimage
+import torch
 import torchvision
+from PIL import Image
+from tqdm import tqdm
 
 try:
     from moviepy.editor import ImageSequenceClip
@@ -345,3 +348,23 @@ def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
         .global_args('-loglevel', 'error', '-n')
         .run()
     )
+
+
+def encode_video(filename, vcodec='libx264'):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        outname = os.path.join(tmpdirname, os.path.basename(filename))
+        (
+            ffmpeg
+            .input(filename)
+            .output(outname, vcodec=vcodec)
+            .global_args('-loglevel', 'error', '-n')
+            .run()
+        )
+        shutil.copy(outname, filename)
+
+
+def encode_videos(*filenames, num_workers=12):
+    with Pool(num_workers) as pool:
+        list(tqdm(pool.imap_unordered(encode_video, filenames), total=len(filenames)))
+        pool.close()
+        pool.join()
