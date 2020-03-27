@@ -350,13 +350,13 @@ def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     )
 
 
-def encode_video(filename, vcodec='libx264'):
+def encode_video(filename, vcodec='libx264', crf=18):
     with tempfile.TemporaryDirectory() as tmpdirname:
         outname = os.path.join(tmpdirname, os.path.basename(filename))
         (
             ffmpeg
             .input(filename)
-            .output(outname, vcodec=vcodec)
+            .output(outname, vcodec=vcodec, crf=crf)
             .global_args('-loglevel', 'error', '-n')
             .run()
         )
