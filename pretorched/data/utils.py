@@ -350,20 +350,25 @@ def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     )
 
 
-def encode_video(filename, vcodec='libx264', crf=18):
+def encode_video(filename, outname, vcodec='libx264', crf=18, scale=1.0, fps=None):
+    outkwargs = {'crf': crf, 'vcodec': vcodec}
+    stream = ffmpeg.input(filename)
+    if scale is not None:
+        stream = ffmpeg.filter(stream, 'scale', f'{scale}*iw', f'{scale}*ih')
+    if fps is not None:
+        stream = ffmpeg.filter(stream, 'fps', fps=25, round='up')
+    stream = ffmpeg.output(stream, outname, **outkwargs).global_args('-loglevel', 'error')
+    ffmpeg.run(stream)
+
+
+def reencode_video(filename, vcodec='libx264', crf=18, scale=1.0, fps=None):
     with tempfile.TemporaryDirectory() as tmpdirname:
         outname = os.path.join(tmpdirname, os.path.basename(filename))
-        (
-            ffmpeg
-            .input(filename)
-            .output(outname, vcodec=vcodec, crf=crf)
-            .global_args('-loglevel', 'error', '-n')
-            .run()
-        )
+        encode_video(filename, outname, vcodec=vcodec, crf=crf, scale=scale, fps=fps)
         shutil.copy(outname, filename)
 
 
-def encode_videos(*filenames, num_workers=12):
+def reencode_videos(*filenames, num_workers=12):
     with Pool(num_workers) as pool:
         list(tqdm(pool.imap_unordered(encode_video, filenames), total=len(filenames)))
         pool.close()
