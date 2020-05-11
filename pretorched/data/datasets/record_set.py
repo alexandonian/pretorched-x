@@ -88,19 +88,28 @@ class MultiLabelVideoRecord(VideoRecord):
 
 class RecordSet:
 
-    def __init__(self, metafile, record_func=VideoRecord):
+    def __init__(self, metafile, record_func=VideoRecord, blacklist_file=None):
         self.records = []
         self.metafile = metafile
         self.record_func = record_func
         with open(metafile) as f:
             self.data = json.load(f)
 
+        self.blacklist = []
+        if blacklist_file is not None:
+            with open(blacklist_file) as f:
+                self.blacklist.extend(json.load(f))
+
         self.records = []
         self.records_dict = defaultdict(list)
+        self.blacklist_records = []
         for rec_data in self.data:
             record = self.record_func(rec_data)
-            self.records.append(record)
-            self.records_dict[record.label].append(record)
+            if record.path not in self.blacklist:
+                self.records.append(record)
+                self.records_dict[record.label].append(record)
+            else:
+                self.blacklist_records.append(record)
 
     def __getitem__(self, idx: int) -> VideoRecord:
         return self.records[idx]
