@@ -1,3 +1,4 @@
+from PIL import Image
 import torch
 from torch.nn.functional import interpolate
 from torchvision.transforms import functional as F
@@ -313,9 +314,10 @@ def extract_face(img, box, image_size=160, margin=0, save_path=None):
         face = img.crop(box).resize((image_size, image_size), 2)
 
     if save_path is not None:
-        # TODO: fix this when tensors are supplied.
+        if isinstance(img, torch.Tensor):
+            face_im = Image.fromarray(face.permute(1, 2, 0).cpu().numpy().astype(np.uint8))
         os.makedirs(os.path.dirname(save_path) + "/", exist_ok=True)
         save_args = {"compress_level": 0} if ".png" in save_path else {}
-        face.save(save_path, **save_args)
+        face_im.save(save_path, **save_args)
 
     return face

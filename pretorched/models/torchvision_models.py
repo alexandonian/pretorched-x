@@ -23,12 +23,26 @@ import torch.nn.functional as F
 
 __all__ = [
     'alexnet',
-    'densenet121', 'densenet169', 'densenet201', 'densenet161',
-    'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+    'densenet121',
+    'densenet169',
+    'densenet201',
+    'densenet161',
+    'resnet18',
+    'resnet34',
+    'resnet50',
+    'resnet101',
+    'resnet152',
     'inceptionv3',
-    'squeezenet1_0', 'squeezenet1_1',
-    'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
-    'vgg19_bn', 'vgg19'
+    'squeezenet1_0',
+    'squeezenet1_1',
+    'vgg11',
+    'vgg11_bn',
+    'vgg13',
+    'vgg13_bn',
+    'vgg16',
+    'vgg16_bn',
+    'vgg19_bn',
+    'vgg19',
 ]
 
 model_urls = {
@@ -59,11 +73,16 @@ model_urls = {
 }
 moments_resnet50_url = 'http://moments.csail.mit.edu/moments_models/resnet50_moments-fd0c4436.pth'
 places365_alexnet_url = 'http://pretorched-x.csail.mit.edu/models/alexnet_places365-0c3a7b83.pth'
-places365_densenet161_url = 'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
-places365_inceptionv3_url = 'http://pretorched-x.csail.mit.edu/models/inceptionv3_places365-87312459.pth'
+places365_densenet161_url = (
+    'http://pretorched-x.csail.mit.edu/models/densenet161_places365-62bbf0d4.pth'
+)
+places365_inceptionv3_url = (
+    'http://pretorched-x.csail.mit.edu/models/inceptionv3_places365-87312459.pth'
+)
 places365_resnet_urls = {
     'resnet18': 'http://pretorched-x.csail.mit.edu/models/resnet18_places365-dbad67aa.pth',
-    'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-a570fcfc.pth'}
+    'resnet50': 'http://pretorched-x.csail.mit.edu/models/resnet50_places365-a570fcfc.pth',
+}
 hybrid1365_urls = {
     'inceptionv3': 'http://pretorched-x.csail.mit.edu/models/inceptionv3_hybrid1365-82826a0f.pth'
 }
@@ -93,80 +112,90 @@ for model_name in __all__:
             'input_range': [0, 1],
             'mean': means[model_name],
             'std': stds[model_name],
-            'num_classes': 1000
+            'num_classes': 1000,
         }
     }
 
 # Add Moments pretrained model.
-pretrained_settings['resnet50'].update({
-    'moments': {
-        'url': moments_resnet50_url,
-        'input_space': 'RGB',
-        'input_size': input_sizes['resnet50'],
-        'input_range': [0, 1],
-        'mean': means['resnet50'],
-        'std': stds['resnet50'],
-        'num_classes': 339,
-    }
-})
-
-pretrained_settings['inceptionv3'].update({
-    'places365': {
-        'url': places365_inceptionv3_url,
-        'input_space': 'RGB',
-        'input_size': input_sizes['inceptionv3'],
-        'input_range': [0, 1],
-        'mean': means['inceptionv3'],
-        'std': stds['inceptionv3'],
-        'num_classes': 365
-    },
-    'hybrid1365': {
-        'url': hybrid1365_urls['inceptionv3'],
-        'input_space': 'RGB',
-        'input_size': input_sizes['inceptionv3'],
-        'input_range': [0, 1],
-        'mean': means['inceptionv3'],
-        'std': stds['inceptionv3'],
-        'num_classes': 1365
-    }
-})
-
-pretrained_settings['alexnet'].update({
-    'places365': {
-        'url': places365_alexnet_url,
-        'input_space': 'RGB',
-        'input_size': input_sizes['alexnet'],
-        'input_range': [0, 1],
-        'mean': means['alexnet'],
-        'std': stds['alexnet'],
-        'num_classes': 365,
-    }
-})
-
-pretrained_settings['densenet161'].update({
-    'places365': {
-        'url': places365_densenet161_url,
-        'input_space': 'RGB',
-        'input_size': input_sizes['densenet161'],
-        'input_range': [0, 1],
-        'mean': means['densenet161'],
-        'std': stds['densenet161'],
-        'num_classes': 365,
-    }
-})
-# Add Places 365 pretrained model.
-for model_name, url in places365_resnet_urls.items():
-    pretrained_settings[model_name].update({
-        'places365': {
-            'url': url,
+pretrained_settings['resnet50'].update(
+    {
+        'moments': {
+            'url': moments_resnet50_url,
             'input_space': 'RGB',
-            'input_size': input_sizes[model_name],
+            'input_size': input_sizes['resnet50'],
             'input_range': [0, 1],
-            'mean': means[model_name],
-            'std': stds[model_name],
+            'mean': means['resnet50'],
+            'std': stds['resnet50'],
+            'num_classes': 339,
+        }
+    }
+)
+
+pretrained_settings['inceptionv3'].update(
+    {
+        'places365': {
+            'url': places365_inceptionv3_url,
+            'input_space': 'RGB',
+            'input_size': input_sizes['inceptionv3'],
+            'input_range': [0, 1],
+            'mean': means['inceptionv3'],
+            'std': stds['inceptionv3'],
+            'num_classes': 365,
+        },
+        'hybrid1365': {
+            'url': hybrid1365_urls['inceptionv3'],
+            'input_space': 'RGB',
+            'input_size': input_sizes['inceptionv3'],
+            'input_range': [0, 1],
+            'mean': means['inceptionv3'],
+            'std': stds['inceptionv3'],
+            'num_classes': 1365,
+        },
+    }
+)
+
+pretrained_settings['alexnet'].update(
+    {
+        'places365': {
+            'url': places365_alexnet_url,
+            'input_space': 'RGB',
+            'input_size': input_sizes['alexnet'],
+            'input_range': [0, 1],
+            'mean': means['alexnet'],
+            'std': stds['alexnet'],
             'num_classes': 365,
         }
-    })
+    }
+)
+
+pretrained_settings['densenet161'].update(
+    {
+        'places365': {
+            'url': places365_densenet161_url,
+            'input_space': 'RGB',
+            'input_size': input_sizes['densenet161'],
+            'input_range': [0, 1],
+            'mean': means['densenet161'],
+            'std': stds['densenet161'],
+            'num_classes': 365,
+        }
+    }
+)
+# Add Places 365 pretrained model.
+for model_name, url in places365_resnet_urls.items():
+    pretrained_settings[model_name].update(
+        {
+            'places365': {
+                'url': url,
+                'input_space': 'RGB',
+                'input_size': input_sizes[model_name],
+                'input_range': [0, 1],
+                'mean': means[model_name],
+                'std': stds[model_name],
+                'num_classes': 365,
+            }
+        }
+    )
 
 
 # for model_name in ['vgg16', 'vgg19']:
@@ -182,8 +211,9 @@ for model_name, url in places365_resnet_urls.items():
 
 
 def load_pretrained(model, num_classes, settings):
-    assert num_classes == settings['num_classes'], \
-        "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
+    assert num_classes == settings['num_classes'], "num_classes should be {}, but is {}".format(
+        settings['num_classes'], num_classes
+    )
     model.load_state_dict(model_zoo.load_url(settings['url']))
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
@@ -194,12 +224,12 @@ def load_pretrained(model, num_classes, settings):
 
 
 def inflate_pretrained(model, num_classes, settings):
-
     def inflate(shape, w, dim=2):
         return w.unsqueeze(dim).expand(shape)
 
-    assert num_classes == settings['num_classes'], \
-        "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
+    assert num_classes == settings['num_classes'], "num_classes should be {}, but is {}".format(
+        settings['num_classes'], num_classes
+    )
     ws = model.state_dict()
     weights = model_zoo.load_url(settings['url'])
     for x in weights:
@@ -277,6 +307,7 @@ def alexnet(num_classes=1000, pretrained='imagenet'):
     model = modify_alexnet(model)
     return model
 
+
 ###############################################################
 # DenseNets
 ###############################################################
@@ -320,7 +351,8 @@ def densenet121(num_classes=1000, pretrained='imagenet'):
         # to find such keys.
         settings = pretrained_settings['densenet121'][pretrained]
         pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
+            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$'
+        )
         state_dict = model_zoo.load_url(settings['url'])
         for key in list(state_dict.keys()):
             res = pattern.match(key)
@@ -345,7 +377,8 @@ def densenet169(num_classes=1000, pretrained='imagenet'):
         # to find such keys.
         settings = pretrained_settings['densenet169'][pretrained]
         pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
+            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$'
+        )
         state_dict = model_zoo.load_url(settings['url'])
         for key in list(state_dict.keys()):
             res = pattern.match(key)
@@ -370,7 +403,8 @@ def densenet201(num_classes=1000, pretrained='imagenet'):
         # to find such keys.
         settings = pretrained_settings['densenet201'][pretrained]
         pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
+            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$'
+        )
         state_dict = model_zoo.load_url(settings['url'])
         for key in list(state_dict.keys()):
             res = pattern.match(key)
@@ -395,7 +429,8 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
         # to find such keys.
         settings = pretrained_settings['densenet161'][pretrained]
         pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
+            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$'
+        )
         state_dict = model_zoo.load_url(settings['url'])
         for key in list(state_dict.keys()):
             res = pattern.match(key)
@@ -406,6 +441,7 @@ def densenet161(num_classes=1000, pretrained='imagenet'):
         model.load_state_dict(state_dict)
     model = modify_densenets(model)
     return model
+
 
 ###############################################################
 # InceptionV3
@@ -474,6 +510,7 @@ def inceptionv3(num_classes=1000, pretrained='imagenet'):
     setattr(model.__class__, 'std', [0.5, 0.5, 0.5])
     return model
 
+
 ###############################################################
 # ResNets
 ###############################################################
@@ -512,6 +549,50 @@ def modify_resnets(model):
     setattr(model.__class__, 'logits', logits)
     setattr(model.__class__, 'forward', forward)
     setattr(model.__class__, 'input_size', (3, 224, 224))
+    setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
+    setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
+    # model.features = types.MethodType(features, model)
+    # model.logits = types.MethodType(logits, model)
+    # model.forward = types.MethodType(forward, model)
+    # model.features = types.MethodType(features, model)
+    # model.logits = types.MethodType(logits, model)
+    # model.forward = types.MethodType(forward, model)
+    return model
+
+
+def modify_resnets3d(model):
+    # Modify attributs
+    model.last_linear = model.fc
+    model.fc = None
+
+    def features(self, input):
+        x = self.conv1(input)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        return x
+
+    def logits(self, features):
+        x = self.avgpool(features)
+        x = x.view(x.size(0), -1)
+        x = self.last_linear(x)
+        return x
+
+    def forward(self, input):
+        x = self.features(input)
+        x = self.logits(x)
+        return x
+
+    # Modify methods
+    setattr(model.__class__, 'features', features)
+    setattr(model.__class__, 'logits', logits)
+    setattr(model.__class__, 'forward', forward)
+    setattr(model.__class__, 'input_size', (3, 16, 224, 224))
     setattr(model.__class__, 'mean', [0.485, 0.456, 0.406])
     setattr(model.__class__, 'std', [0.229, 0.224, 0.225])
     # model.features = types.MethodType(features, model)
@@ -577,6 +658,7 @@ def resnet152(num_classes=1000, pretrained='imagenet'):
     model = modify_resnets(model)
     return model
 
+
 ###############################################################
 # SqueezeNets
 ###############################################################
@@ -640,6 +722,7 @@ def squeezenet1_1(num_classes=1000, pretrained='imagenet'):
     model = modify_squeezenets(model)
     return model
 
+
 ###############################################################
 # VGGs
 ###############################################################
@@ -656,12 +739,7 @@ def modify_vggs(model):
     model.last_linear = model.classifier[6]
     del model.classifier
     features = nn.Sequential(
-        model.features,
-        nn.Flatten(),
-        model.linear0,
-        model.relu0,
-        model.dropout0,
-        model.linear1
+        model.features, nn.Flatten(), model.linear0, model.relu0, model.dropout0, model.linear1
     )
 
     def logits(self, features):
@@ -776,6 +854,7 @@ def vgg19_bn(num_classes=1000, pretrained='imagenet'):
 ###############################################################
 # MobileNets
 ###############################################################
+
 
 def modify_mobilenetv2(model):
     pass

@@ -6,28 +6,43 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from . import torchvision_models
-from .torchvision_models import load_pretrained, inflate_pretrained, modify_resnets
+from .torchvision_models import load_pretrained, inflate_pretrained, modify_resnets3d
 
 
 __all__ = [
-    'ResNet3D', 'resnet3d10', 'resnet3d18', 'resnet3d34',
-    'resnet3d50', 'resnet3d101', 'resnet3d152', 'resnet3d200',
+    'ResNet3D',
+    'resnet3d10',
+    'resnet3d18',
+    'resnet3d34',
+    'resnet3d50',
+    'resnet3d101',
+    'resnet3d152',
+    'resnet3d200',
 ]
 
 model_urls = {
-    'kinetics-400': defaultdict(lambda: None, {
-        'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-e9f44270.pth',
-        'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-7fed38dd.pth',
-        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-aad059c9.pth',
-        'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-8d4c9d63.pth',
-        'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-575c47e2.pth',
-    }),
-    'moments': defaultdict(lambda: None, {
-        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-6eb53860.pth',
-    }),
-    'multimoments': defaultdict(lambda: None, {
-        'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_multimoments-5341c986.pth'
-    })
+    'kinetics-400': defaultdict(
+        lambda: None,
+        {
+            'resnet3d18': 'http://pretorched-x.csail.mit.edu/models/resnet3d18_kinetics-e9f44270.pth',
+            'resnet3d34': 'http://pretorched-x.csail.mit.edu/models/resnet3d34_kinetics-7fed38dd.pth',
+            'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_kinetics-aad059c9.pth',
+            'resnet3d101': 'http://pretorched-x.csail.mit.edu/models/resnet3d101_kinetics-8d4c9d63.pth',
+            'resnet3d152': 'http://pretorched-x.csail.mit.edu/models/resnet3d152_kinetics-575c47e2.pth',
+        },
+    ),
+    'moments': defaultdict(
+        lambda: None,
+        {
+            'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_moments-6eb53860.pth',
+        },
+    ),
+    'multimoments': defaultdict(
+        lambda: None,
+        {
+            'resnet3d50': 'http://pretorched-x.csail.mit.edu/models/resnet3d50_16seg_multimoments-5341c986.pth'
+        },
+    ),
 }
 
 num_classes = {'kinetics-400': 400, 'moments': 339, 'multimoments': 313}
@@ -38,7 +53,7 @@ means = {}
 stds = {}
 
 for model_name in __all__:
-    input_sizes[model_name] = [3, 224, 224]
+    input_sizes[model_name] = [3, 1, 224, 224]
     means[model_name] = [0.485, 0.456, 0.406]
     stds[model_name] = [0.229, 0.224, 0.225]
 
@@ -59,16 +74,14 @@ for model_name in __all__:
 
 def conv3x3x3(in_planes, out_planes, stride=1):
     """3x3x3 convolution with padding."""
-    return nn.Conv3d(
-        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
-    )
+    return nn.Conv3d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 def downsample_basic_block(x, planes, stride):
     out = F.avg_pool3d(x, kernel_size=1, stride=stride)
     zero_pads = torch.Tensor(
-        out.size(0), planes - out.size(1),
-        out.size(2), out.size(3), out.size(4)).zero_()
+        out.size(0), planes - out.size(1), out.size(2), out.size(3), out.size(4)
+    ).zero_()
     if isinstance(out.data, torch.cuda.FloatTensor):
         zero_pads = zero_pads.cuda()
     out = Variable(torch.cat([out.data, zero_pads], dim=1))
@@ -116,7 +129,9 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = self.Conv3d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm3d(planes)
-        self.conv2 = self.Conv3d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.conv2 = self.Conv3d(
+            planes, planes, kernel_size=3, stride=stride, padding=1, bias=False
+        )
         self.bn2 = nn.BatchNorm3d(planes)
         self.conv3 = self.Conv3d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm3d(planes * 4)
@@ -152,7 +167,9 @@ class ResNet3D(nn.Module):
     def __init__(self, block, layers, shortcut_type='B', num_classes=339):
         self.inplanes = 64
         super(ResNet3D, self).__init__()
-        self.conv1 = self.Conv3d(3, 64, kernel_size=7, stride=(1, 2, 2), padding=(3, 3, 3), bias=False)
+        self.conv1 = self.Conv3d(
+            3, 64, kernel_size=7, stride=(1, 2, 2), padding=(3, 3, 3), bias=False
+        )
         self.bn1 = nn.BatchNorm3d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool3d(kernel_size=(3, 3, 3), stride=2, padding=1)
@@ -170,9 +187,7 @@ class ResNet3D(nn.Module):
         if stride != 1 or self.inplanes != planes * block.expansion:
             if shortcut_type == 'A':
                 downsample = partial(
-                    downsample_basic_block,
-                    planes=planes * block.expansion,
-                    stride=stride,
+                    downsample_basic_block, planes=planes * block.expansion, stride=stride,
                 )
             else:
                 downsample = nn.Sequential(
@@ -244,29 +259,31 @@ def get_fine_tuning_parameters(model, ft_begin_index):
 def resnet3d10(**kwargs):
     """Constructs a ResNet3D-10 model."""
     model = ResNet3D(BasicBlock, [1, 1, 1, 1], **kwargs)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
 def resnet3d18(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **kwargs):
     """Constructs a ResNet3D-18 model."""
-    model = ResNet3D(BasicBlock, [2, 2, 2, 2], num_classes=num_classes,
-                     shortcut_type=shortcut_type, **kwargs)
+    model = ResNet3D(
+        BasicBlock, [2, 2, 2, 2], num_classes=num_classes, shortcut_type=shortcut_type, **kwargs
+    )
     if pretrained is not None:
         settings = pretrained_settings['resnet3d18'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
 def resnet3d34(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **kwargs):
     """Constructs a ResNet3D-34 model."""
-    model = ResNet3D(BasicBlock, [3, 4, 6, 3], num_classes=num_classes,
-                     shortcut_type=shortcut_type, **kwargs)
+    model = ResNet3D(
+        BasicBlock, [3, 4, 6, 3], num_classes=num_classes, shortcut_type=shortcut_type, **kwargs
+    )
     if pretrained is not None:
         settings = pretrained_settings['resnet3d34'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
@@ -276,7 +293,7 @@ def resnet3d50(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d50'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
@@ -286,7 +303,7 @@ def resnet3d101(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d101'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
@@ -296,27 +313,28 @@ def resnet3d152(num_classes=400, pretrained='kinetics-400', **kwargs):
     if pretrained is not None:
         settings = pretrained_settings['resnet3d152'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
-def resnet3d200(num_classes=400, pretrained='kinetics-400', **kwargs):
+def resnet3d200(num_classes=400, pretrained=None, **kwargs):
     """Constructs a ResNet3D-200 model."""
     model = ResNet3D(Bottleneck, [3, 24, 36, 3], **kwargs)
     if pretrained is not None:
         settings = pretrained_settings['resnet3d200'][pretrained]
         model = load_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
     return model
 
 
-def resneti3d50(num_classes=400, pretrained='moments', **kwargs):
+def resneti3d50(num_classes=339, pretrained='moments', **kwargs):
     """Constructs a ResNet3D-50 model."""
     model = ResNet3D(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, **kwargs)
     if pretrained is not None:
         settings = torchvision_models.pretrained_settings['resnet50'][pretrained]
         model = inflate_pretrained(model, num_classes, settings)
-    model = modify_resnets(model)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
     return model
 
 

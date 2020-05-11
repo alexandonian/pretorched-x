@@ -123,6 +123,8 @@ class ResNeXtBottleneck(nn.Module):
 
 class ResNeXt3D(nn.Module):
 
+    input_size = (3, 16, 224, 224)
+
     def __init__(self, block, layers, shortcut_type='B', cardinality=32, num_classes=400):
         self.inplanes = 64
         super(ResNeXt3D, self).__init__()
