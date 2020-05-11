@@ -335,6 +335,28 @@ def frames_to_video(input, output, pattern_type='glob', framerate=30,
     )
 
 
+def array_to_video(images, filename, framerate=30, vcodec='libx264'):
+    if not isinstance(images, np.ndarray):
+        images = np.asarray(images)
+    n, height, width, channels = images.shape
+    process = (
+        ffmpeg
+        .input('pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height))
+        .output(filename, pix_fmt='yuv420p', vcodec=vcodec, r=framerate)
+        .global_args('-loglevel', 'error')
+        .overwrite_output()
+        .run_async(pipe_stdin=True)
+    )
+    for frame in images:
+        process.stdin.write(
+            frame
+            .astype(np.uint8)
+            .tobytes()
+        )
+    process.stdin.close()
+    process.wait()
+
+
 def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     size = get_size(input)
     scale = smallest_side_size / min(*size)
@@ -361,7 +383,7 @@ def encode_video(filename, outname, vcodec='libx264', crf=18, scale=1.0, fps=Non
     ffmpeg.run(stream)
 
 
-def reencode_video(filename, vcodec='libx264', crf=18, scale=1.0, fps=None):
+def reencode_video(filename, vcodec='libx264', crf=33, scale=1.0, fps=None):
     with tempfile.TemporaryDirectory() as tmpdirname:
         outname = os.path.join(tmpdirname, os.path.basename(filename))
         encode_video(filename, outname, vcodec=vcodec, crf=crf, scale=scale, fps=fps)
@@ -370,6 +392,6 @@ def reencode_video(filename, vcodec='libx264', crf=18, scale=1.0, fps=None):
 
 def reencode_videos(*filenames, num_workers=12):
     with Pool(num_workers) as pool:
-        list(tqdm(pool.imap_unordered(encode_video, filenames), total=len(filenames)))
+        list(tqdm(pool.imap_unordered(reencode_video, filenames), total=len(filenames)))
         pool.close()
         pool.join()
