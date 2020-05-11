@@ -15,6 +15,7 @@ NUM_CLASSES = {
     'Places365': 365,
     'Hybrid1365': 1365,
     'Moments': 339,
+    'M3': 339,
     'MultiMoments': 313,
     'Kinetics': 400,
     'Kinetics-400': 400,
@@ -22,6 +23,7 @@ NUM_CLASSES = {
 
 VIDEO_DATASETS = [
     'Moments',
+    'M3',
     'MultiMoments',
     'Kinetics',
     'Kinetics-400',
@@ -59,6 +61,9 @@ def get_root_dirs(name, dataset_type='ImageHDF5', resolution=128, data_root=DATA
         'Hybrid1365': {
             'ImageHDF5': defaultdict(lambda: data_root, {}),
             'ImageFolder': defaultdict(lambda: data_root, {}),
+        },
+        'M3': {
+            'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'))
         }
     }
     return root_dirs[name][dataset_type][resolution]
@@ -93,6 +98,10 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
             'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
             'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
         },
+        'M3': {
+            'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+            'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Moments/videos'), {}),
+        },
         'Kinetics': {
             'VideoRecordDataset': defaultdict(lambda: os.path.join(data_root, 'Kinetics/videos')),
             'VideoRecordZipDataset': defaultdict(lambda: os.path.join(data_root, 'Kinetics/videos')),
@@ -102,12 +111,14 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
     fname = {
         'train': f'{name.lower()}_train.json',
         'val': f'{name.lower()}_val.json',
-        'test': f'{name.lower()}_test.json',
     }.get(split, 'train')
 
     metafiles = {
         'Moments': {
             'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Moments', fname), {}),
+        },
+        'M3': {
+            'RecordSet': defaultdict(lambda: os.path.join(data_root, 'M3', fname), {}),
         },
         'Kinetics': {
             'RecordSet': defaultdict(lambda: os.path.join(data_root, 'Kinetics', fname), {}),
@@ -118,8 +129,11 @@ def get_metadata(name, split='train', dataset_type='VideoRecordDataset', record_
         },
     }
     metafile = metafiles[name][record_set_type][resolution]
+    blacklist_file = {
+        'M3': os.path.join(data_root, 'Memento', 'memento_videos.json'),
+    }.get(name)
 
-    return {'root': root, 'metafile': metafile}
+    return {'root': root, 'metafile': metafile, 'blacklist_file': blacklist_file}
 
 
 def name_from_args(args):
@@ -175,13 +189,12 @@ def parse_args():
     parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
-    parser.add_argument('-p', '--print-freq', default=10, type=int,
+    parser.add_argument('-p', '--print-freq', default=100, type=int,
                         metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--resume', default='', type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('--weights_dir', default='weights', type=str, metavar='PATH')
     parser.add_argument('--logs_dir', default='logs', type=str, metavar='PATH')
-    parser.add_argument('--features_dir', default='features', type=str, metavar='PATH')
     parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--world-size', default=-1, type=int,

@@ -261,7 +261,7 @@ def get_dataloader(name, data_root=None, split='train', size=224, resolution=256
                    dataset_type='ImageFolder', batch_size=64, num_workers=8, shuffle=True,
                    load_in_mem=False, pin_memory=True, drop_last=True, distributed=False,
                    **kwargs):
-    if name in ['Moments', 'Kinetics']:
+    if name in cfg.VIDEO_DATASETS:
         return get_video_dataloader(name, data_root=data_root, split=split, size=size, resolution=resolution,
                                     dataset_type=dataset_type, batch_size=batch_size, num_workers=num_workers,
                                     shuffle=shuffle, load_in_mem=load_in_mem, pin_memory=pin_memory,
