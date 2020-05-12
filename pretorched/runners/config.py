@@ -21,6 +21,12 @@ NUM_CLASSES = {
     'Kinetics-400': 400,
 }
 
+IMAGE_DATASETS = [
+    'ImageNet',
+    'Places365',
+    'Hybrid1365'
+]
+
 VIDEO_DATASETS = [
     'Moments',
     'M3',
