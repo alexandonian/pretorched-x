@@ -5,6 +5,7 @@
 
 import math
 import sys
+from collections import defaultdict
 from functools import partial
 
 import torch
@@ -13,11 +14,55 @@ from torch.nn import Module
 from torch.nn.utils.spectral_norm import spectral_norm
 
 from ..nn import Mish
+from .torchvision_models import load_pretrained
 
-__all__ = ['MXResNet', 'mxresnet18', 'mxresnet34', 'mxresnet50', 'mxresnet101', 'mxresnet152']
+__all__ = [
+    'MXResNet',
+    'mxresnet18',
+    'mxresnet34',
+    'mxresnet50',
+    'mxresnet101',
+    'mxresnet152',
+]
+
+model_urls = {
+    'imagenet': defaultdict(
+        lambda: None,
+        {
+            'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-47250e15.pth'
+        },
+    )
+}
+
+num_classes = {'imagenet': 1000}
+pretrained_settings = defaultdict(dict)
+input_sizes = {}
+means = {}
+stds = {}
+
+for model_name in __all__:
+    input_sizes[model_name] = [3, 1, 224, 224]
+    means[model_name] = [0.485, 0.456, 0.406]
+    stds[model_name] = [0.229, 0.224, 0.225]
+
+for model_name in __all__:
+    if model_name in ['ResNet3D']:
+        continue
+    for dataset, urls in model_urls.items():
+        pretrained_settings[model_name][dataset] = {
+            'input_space': 'RGB',
+            'input_range': [0, 1],
+            'url': urls[model_name],
+            'std': stds[model_name],
+            'mean': means[model_name],
+            'num_classes': num_classes[dataset],
+            'input_size': input_sizes[model_name],
+        }
 
 
-def conv1d(ni: int, no: int, ks: int = 1, stride: int = 1, padding: int = 0, bias: bool = False):
+def conv1d(
+    ni: int, no: int, ks: int = 1, stride: int = 1, padding: int = 0, bias: bool = False
+):
     """Create and initialize a `nn.Conv1d` layer with spectral normalization.
 
     Unmodified from
@@ -39,7 +84,7 @@ class SimpleSelfAttention(nn.Module):
 
         self.conv = conv1d(n_in, n_in, ks, padding=ks // 2, bias=False)
 
-        self.gamma = nn.Parameter(torch.tensor([0.]))
+        self.gamma = nn.Parameter(torch.tensor([0.0]))
 
         self.sym = sym
         self.n_in = n_in
@@ -53,15 +98,17 @@ class SimpleSelfAttention(nn.Module):
             self.conv.weight = c.view(self.n_in, self.n_in, 1)
 
         size = x.size()
-        x = x.view(*size[:2], -1)   # (C,N)
+        x = x.view(*size[:2], -1)  # (C,N)
 
         # changed the order of mutiplication to avoid O(N^2) complexity
         # (x*xT)*(W*x) instead of (x*(xT*(W*x)))
 
-        convx = self.conv(x)   # (C,C) * (C,N) = (C,N)   => O(NC^2)
-        xxT = torch.bmm(x, x.permute(0, 2, 1).contiguous())   # (C,N) * (N,C) = (C,C)   => O(NC^2)
+        convx = self.conv(x)  # (C,C) * (C,N) = (C,N)   => O(NC^2)
+        xxT = torch.bmm(
+            x, x.permute(0, 2, 1).contiguous()
+        )  # (C,N) * (N,C) = (C,C)   => O(NC^2)
 
-        o = torch.bmm(xxT, convx)   # (C,C) * (C,N) = (C,N)   => O(NC^2)
+        o = torch.bmm(xxT, convx)  # (C,C) * (C,N) = (C,N)   => O(NC^2)
 
         o = self.gamma * o + x
 
@@ -91,7 +138,7 @@ def noop(x):
 
 def conv_layer(ni, nf, ks=3, stride=1, zero_bn=False, act=True):
     bn = nn.BatchNorm2d(nf)
-    nn.init.constant_(bn.weight, 0. if zero_bn else 1.)
+    nn.init.constant_(bn.weight, 0.0 if zero_bn else 1.0)
     layers = [conv(ni, nf, ks, stride=stride), bn]
     if act:
         layers.append(act_fn)
@@ -102,13 +149,18 @@ class ResBlock(Module):
     def __init__(self, expansion, ni, nh, stride=1, sa=False, sym=False):
         super().__init__()
         nf, ni = nh * expansion, ni * expansion
-        layers = [conv_layer(ni, nh, 3, stride=stride),
-                  conv_layer(nh, nf, 3, zero_bn=True, act=False)
-                  ] if expansion == 1 else [
-            conv_layer(ni, nh, 1),
-            conv_layer(nh, nh, 3, stride=stride),
-            conv_layer(nh, nf, 1, zero_bn=True, act=False)
-        ]
+        layers = (
+            [
+                conv_layer(ni, nh, 3, stride=stride),
+                conv_layer(nh, nf, 3, zero_bn=True, act=False),
+            ]
+            if expansion == 1
+            else [
+                conv_layer(ni, nh, 1),
+                conv_layer(nh, nh, 3, stride=stride),
+                conv_layer(nh, nf, 1, zero_bn=True, act=False),
+            ]
+        )
         self.sa = SimpleSelfAttention(nf, ks=1, sym=sym) if sa else noop
         self.convs = nn.Sequential(*layers)
         # TODO: check whether act=True works better
@@ -120,40 +172,61 @@ class ResBlock(Module):
 
 
 def filt_sz(recep):
-    return min(64, 2**math.floor(math.log2(recep * 0.75)))
+    return min(64, 2 ** math.floor(math.log2(recep * 0.75)))
 
 
 class MXResNetSeq(nn.Sequential):
-    def __init__(self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False):
+    def __init__(
+        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
+    ):
         stem = []
         sizes = [c_in, 32, 64, 64]  # modified per Grankin
         for i in range(3):
             stem.append(conv_layer(sizes[i], sizes[i + 1], stride=2 if i == 0 else 1))
 
         block_szs = [64 // expansion, 64, 128, 256, 512]
-        blocks = [self._make_layer(expansion, block_szs[i],
-                                   block_szs[i + 1], l,
-                                   1 if i == 0 else 2,
-                                   sa=sa if i in[len(layers) - 4] else False,
-                                   sym=sym)
-                  for i, l in enumerate(layers)]
+        blocks = [
+            self._make_layer(
+                expansion,
+                block_szs[i],
+                block_szs[i + 1],
+                l,
+                1 if i == 0 else 2,
+                sa=sa if i in [len(layers) - 4] else False,
+                sym=sym,
+            )
+            for i, l in enumerate(layers)
+        ]
         super().__init__(
             *stem,
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
             *blocks,
-            nn.AdaptiveAvgPool2d(1), nn.Flatten(),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
             nn.Linear(block_szs[-1] * expansion, num_classes),
         )
         init_cnn(self)
 
     def _make_layer(self, expansion, ni, nf, blocks, stride, sa=False, sym=False):
         return nn.Sequential(
-            *[ResBlock(expansion, ni if i == 0 else nf, nf, stride if i == 0 else 1, sa if i in [blocks - 1] else False, sym)
-              for i in range(blocks)])
+            *[
+                ResBlock(
+                    expansion,
+                    ni if i == 0 else nf,
+                    nf,
+                    stride if i == 0 else 1,
+                    sa if i in [blocks - 1] else False,
+                    sym,
+                )
+                for i in range(blocks)
+            ]
+        )
 
 
 class MXResNet(nn.Module):
-    def __init__(self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False):
+    def __init__(
+        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
+    ):
         super().__init__()
         stem = []
         sizes = [c_in, 32, 64, 64]  # modified per Grankin
@@ -161,27 +234,42 @@ class MXResNet(nn.Module):
             stem.append(conv_layer(sizes[i], sizes[i + 1], stride=2 if i == 0 else 1))
 
         block_szs = [64 // expansion, 64, 128, 256, 512]
-        blocks = [self._make_layer(expansion, block_szs[i],
-                                   block_szs[i + 1], l,
-                                   1 if i == 0 else 2,
-                                   sa=sa if i in[len(layers) - 4] else False,
-                                   sym=sym)
-                  for i, l in enumerate(layers)]
+        blocks = [
+            self._make_layer(
+                expansion,
+                block_szs[i],
+                block_szs[i + 1],
+                l,
+                1 if i == 0 else 2,
+                sa=sa if i in [len(layers) - 4] else False,
+                sym=sym,
+            )
+            for i, l in enumerate(layers)
+        ]
         self.last_linear = nn.Linear(block_szs[-1] * expansion, num_classes)
         self.features = nn.Sequential(
-            *stem,
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
-            *blocks)
+            *stem, nn.MaxPool2d(kernel_size=3, stride=2, padding=1), *blocks
+        )
         self.logits = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1), nn.Flatten(),
-            self.last_linear)
+            nn.AdaptiveAvgPool2d(1), nn.Flatten(), self.last_linear
+        )
 
         init_cnn(self)
 
     def _make_layer(self, expansion, ni, nf, blocks, stride, sa=False, sym=False):
         return nn.Sequential(
-            *[ResBlock(expansion, ni if i == 0 else nf, nf, stride if i == 0 else 1, sa if i in [blocks - 1] else False, sym)
-              for i in range(blocks)])
+            *[
+                ResBlock(
+                    expansion,
+                    ni if i == 0 else nf,
+                    nf,
+                    stride if i == 0 else 1,
+                    sa if i in [blocks - 1] else False,
+                    sym,
+                )
+                for i in range(blocks)
+            ]
+        )
 
     def forward(self, x):
         x = self.features(x)
@@ -189,12 +277,15 @@ class MXResNet(nn.Module):
         return x
 
 
-def mxresnet(expansion, n_layers, name, pretrained=False, **kwargs):
-    model = MXResNet(expansion, n_layers, **kwargs)
+def mxresnet(expansion, n_layers, name, num_classes=1000, pretrained='imagenet', **kwargs):
+    model = MXResNet(expansion, n_layers, num_classes=num_classes, **kwargs)
     model.input_size = (3, 224, 224)
-    if pretrained:
-        # model.load_state_dict(model_zoo.load_url(model_urls[name]))
-        print("No pretrained yet for MXResNet")
+    if pretrained is not None:
+        settings = pretrained_settings[name][pretrained]
+        if settings['url'] is not None:
+            model = load_pretrained(model, num_classes, settings)
+        else:
+            print(f'No pretrained model for {name} on {pretrained}')
     return model
 
 
