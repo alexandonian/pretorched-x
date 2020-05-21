@@ -62,10 +62,15 @@ from .resnet3D import resnet3d10
 from .resnet3D import resnet3d18
 from .resnet3D import resnet3d34
 from .resnet3D import resnet3d50
-from .resnet3D import resneti3d50
 from .resnet3D import resnet3d101
 from .resnet3D import resnet3d152
 from .resnet3D import resnet3d200
+
+from .resnet3D import resneti3d18
+from .resnet3D import resneti3d50
+from .resnet3D import resneti3d101
+from .resnet3D import resneti3d152
+from .resnet3D import resneti3d200
 
 from .resnext3D import resnext3d10
 from .resnext3D import resnext3d18

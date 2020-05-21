@@ -18,6 +18,11 @@ __all__ = [
     'resnet3d101',
     'resnet3d152',
     'resnet3d200',
+    'resneti3d18',
+    'resneti3d50',
+    'resneti3d101',
+    'resneti3d152',
+    'resneti3d200',
 ]
 
 model_urls = {
@@ -74,7 +79,9 @@ for model_name in __all__:
 
 def conv3x3x3(in_planes, out_planes, stride=1):
     """3x3x3 convolution with padding."""
-    return nn.Conv3d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
+    return nn.Conv3d(
+        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
+    )
 
 
 def downsample_basic_block(x, planes, stride):
@@ -187,7 +194,9 @@ class ResNet3D(nn.Module):
         if stride != 1 or self.inplanes != planes * block.expansion:
             if shortcut_type == 'A':
                 downsample = partial(
-                    downsample_basic_block, planes=planes * block.expansion, stride=stride,
+                    downsample_basic_block,
+                    planes=planes * block.expansion,
+                    stride=stride,
                 )
             else:
                 downsample = nn.Sequential(
@@ -266,7 +275,11 @@ def resnet3d10(**kwargs):
 def resnet3d18(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **kwargs):
     """Constructs a ResNet3D-18 model."""
     model = ResNet3D(
-        BasicBlock, [2, 2, 2, 2], num_classes=num_classes, shortcut_type=shortcut_type, **kwargs
+        BasicBlock,
+        [2, 2, 2, 2],
+        num_classes=num_classes,
+        shortcut_type=shortcut_type,
+        **kwargs,
     )
     if pretrained is not None:
         settings = pretrained_settings['resnet3d18'][pretrained]
@@ -278,7 +291,11 @@ def resnet3d18(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **
 def resnet3d34(num_classes=400, pretrained='kinetics-400', shortcut_type='A', **kwargs):
     """Constructs a ResNet3D-34 model."""
     model = ResNet3D(
-        BasicBlock, [3, 4, 6, 3], num_classes=num_classes, shortcut_type=shortcut_type, **kwargs
+        BasicBlock,
+        [3, 4, 6, 3],
+        num_classes=num_classes,
+        shortcut_type=shortcut_type,
+        **kwargs,
     )
     if pretrained is not None:
         settings = pretrained_settings['resnet3d34'][pretrained]
@@ -327,11 +344,66 @@ def resnet3d200(num_classes=400, pretrained=None, **kwargs):
     return model
 
 
-def resneti3d50(num_classes=339, pretrained='moments', **kwargs):
-    """Constructs a ResNet3D-50 model."""
+def resneti3d18(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs an inflated ResNet3D-18 model."""
+    model = ResNet3D(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet18'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
+    return model
+
+
+def resneti3d34(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs an inflated ResNet3D-34 model."""
+    model = ResNet3D(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet34'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
+    return model
+
+
+def resneti3d50(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs a inflated ResNet3D-50 model."""
     model = ResNet3D(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, **kwargs)
     if pretrained is not None:
         settings = torchvision_models.pretrained_settings['resnet50'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
+    return model
+
+
+def resneti3d101(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs a inflated ResNet3D-101 model."""
+    model = ResNet3D(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet101'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
+    return model
+
+
+def resneti3d152(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs a inflated ResNet3D-152 model."""
+    model = ResNet3D(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet152'][pretrained]
+        model = inflate_pretrained(model, num_classes, settings)
+    model = modify_resnets3d(model)
+    model.input_size = (3, 16, 224, 224)
+    return model
+
+
+def resneti3d200(num_classes=1000, pretrained='imagenet', **kwargs):
+    """Constructs a inflated ResNet3D-200 model."""
+    model = ResNet3D(Bottleneck, [3, 24, 36, 3], num_classes=num_classes, **kwargs)
+    if pretrained is not None:
+        settings = torchvision_models.pretrained_settings['resnet200'][pretrained]
         model = inflate_pretrained(model, num_classes, settings)
     model = modify_resnets3d(model)
     model.input_size = (3, 16, 224, 224)
