@@ -92,6 +92,13 @@ from .mxresnet import mxresnet50
 from .mxresnet import mxresnet50
 from .mxresnet import mxresnet101
 from .mxresnet import mxresnet152
+from .mxresnet import samxresnet18
+from .mxresnet import samxresnet34
+from .mxresnet import samxresnet50
+from .mxresnet import samxresnet50
+from .mxresnet import samxresnet101
+from .mxresnet import samxresnet152
+
 
 from .mobilenet import mobilenetv2
 

@@ -177,7 +177,7 @@ def filt_sz(recep):
 
 class MXResNetSeq(nn.Sequential):
     def __init__(
-        self, expansion, layers, c_in=3, num_classes=1000, sa=True, sym=False
+        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
     ):
         stem = []
         sizes = [c_in, 32, 64, 64]  # modified per Grankin
@@ -225,7 +225,7 @@ class MXResNetSeq(nn.Sequential):
 
 class MXResNet(nn.Module):
     def __init__(
-        self, expansion, layers, c_in=3, num_classes=1000, sa=True, sym=False
+        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
     ):
         super().__init__()
         stem = []
@@ -299,3 +299,6 @@ for n, e, l in [
 ]:
     name = f'mxresnet{n}'
     setattr(me, name, partial(mxresnet, expansion=e, n_layers=l, name=name))
+
+    sa_name = f'samxresnet{n}'
+    setattr(me, sa_name, partial(mxresnet, expansion=e, n_layers=l, name=sa_name, sa=True))
