@@ -23,6 +23,11 @@ __all__ = [
     'mxresnet50',
     'mxresnet101',
     'mxresnet152',
+    'samxresnet18',
+    'samxresnet34',
+    'samxresnet50',
+    'samxresnet101',
+    'samxresnet152'
 ]
 
 model_urls = {
