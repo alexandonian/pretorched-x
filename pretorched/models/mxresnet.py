@@ -28,15 +28,15 @@ __all__ = [  # noqa
     'samxresnet34',
     'samxresnet50',
     'samxresnet101',
-    'samxresnet152'
+    'samxresnet152',
 ]
 
 model_urls: Dict[str, Dict[str, Union[str, None]]] = {
     'imagenet': defaultdict(
         lambda: None,
         {
-            'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-47250e15.pth',
-            'samxresnet18': 'http://pretorched-x.csail.mit.edu/models/samxresnet18_imagenet-d847cdd7.pth',
+            'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-c7af5e38.pth',
+            'samxresnet18': 'http://pretorched-x.csail.mit.edu/models/samxresnet18_imagenet-0e56b40a.pth',
         },
     )
 }
@@ -253,14 +253,11 @@ class MXResNet(nn.Module):
             )
             for i, l in enumerate(layers)
         ]
-        self.last_linear = nn.Linear(block_szs[-1] * expansion, num_classes)
         self.features = nn.Sequential(
             *stem, nn.MaxPool2d(kernel_size=3, stride=2, padding=1), *blocks
         )
-        self.logits = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1), nn.Flatten(), self.last_linear
-        )
-
+        self.logits = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.Flatten())
+        self.last_linear = nn.Linear(block_szs[-1] * expansion, num_classes)
         init_cnn(self)
 
     def _make_layer(self, expansion, ni, nf, blocks, stride, sa=False, sym=False):
@@ -281,10 +278,13 @@ class MXResNet(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = self.logits(x)
+        x = self.last_linear(x)
         return x
 
 
-def mxresnet(expansion, n_layers, name, num_classes=1000, pretrained='imagenet', **kwargs):
+def mxresnet(
+    expansion, n_layers, name, num_classes=1000, pretrained='imagenet', **kwargs
+):
     model = MXResNet(expansion, n_layers, num_classes=num_classes, **kwargs)
     model.input_size = (3, 224, 224)
     if pretrained is not None:
@@ -308,4 +308,6 @@ for n, e, l in [
     setattr(me, name, partial(mxresnet, expansion=e, n_layers=l, name=name))
 
     sa_name = f'samxresnet{n}'
-    setattr(me, sa_name, partial(mxresnet, expansion=e, n_layers=l, name=sa_name, sa=True))
+    setattr(
+        me, sa_name, partial(mxresnet, expansion=e, n_layers=l, name=sa_name, sa=True)
+    )
