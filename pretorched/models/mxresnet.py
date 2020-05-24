@@ -7,6 +7,7 @@ import math
 import sys
 from collections import defaultdict
 from functools import partial
+from typing import Dict, Union
 
 import torch
 import torch.nn as nn
@@ -16,7 +17,7 @@ from torch.nn.utils.spectral_norm import spectral_norm
 from ..nn import Mish
 from .torchvision_models import load_pretrained
 
-__all__ = [
+__all__ = [  # noqa
     'MXResNet',
     'mxresnet18',
     'mxresnet34',
@@ -30,17 +31,18 @@ __all__ = [
     'samxresnet152'
 ]
 
-model_urls = {
+model_urls: Dict[str, Dict[str, Union[str, None]]] = {
     'imagenet': defaultdict(
         lambda: None,
         {
-            'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-47250e15.pth'
+            'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-47250e15.pth',
+            'samxresnet18': 'http://pretorched-x.csail.mit.edu/models/samxresnet18_imagenet-d847cdd7.pth',
         },
     )
 }
 
 num_classes = {'imagenet': 1000}
-pretrained_settings = defaultdict(dict)
+pretrained_settings: Dict[str, Dict[str, Dict]] = defaultdict(dict)
 input_sizes = {}
 means = {}
 stds = {}
