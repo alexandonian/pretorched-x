@@ -11,7 +11,9 @@ from typing import Dict, Union
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn import Module
+from torch.nn import Parameter as P
 from torch.nn.utils.spectral_norm import spectral_norm
 
 from ..nn import Mish
@@ -24,6 +26,11 @@ __all__ = [  # noqa
     'mxresnet50',
     'mxresnet101',
     'mxresnet152',
+    'ssamxresnet18',
+    'ssamxresnet34',
+    'ssamxresnet50',
+    'ssamxresnet101',
+    'ssamxresnet152',
     'samxresnet18',
     'samxresnet34',
     'samxresnet50',
@@ -36,7 +43,7 @@ model_urls: Dict[str, Dict[str, Union[str, None]]] = {
         lambda: None,
         {
             'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-c7af5e38.pth',
-            'samxresnet18': 'http://pretorched-x.csail.mit.edu/models/samxresnet18_imagenet-0e56b40a.pth',
+            'ssamxresnet18': 'http://pretorched-x.csail.mit.edu/models/ssamxresnet18_imagenet-0e56b40a.pth',
         },
     )
 }
@@ -122,6 +129,57 @@ class SimpleSelfAttention(nn.Module):
         return o.view(*size).contiguous()
 
 
+class Attention(nn.Module):
+    """A non-local block as used in SA-GAN.
+
+    NOTE: The implementation as described in the paper is largely incorrect!
+    Below, we provide a one-to-one PyTorch porting of the official SA-GAN tensorflow release.
+    """
+
+    def __init__(self, ch, conv_func=nn.Conv2d, **kwargs):
+        super().__init__()
+        # Channel multiplier
+        self.ch = ch
+        self.conv_func = conv_func
+        self.theta = self.conv_func(
+            self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False
+        )
+        self.phi = self.conv_func(
+            self.ch, self.ch // 8, kernel_size=1, padding=0, bias=False
+        )
+        self.g = self.conv_func(
+            self.ch, self.ch // 2, kernel_size=1, padding=0, bias=False
+        )
+        self.o = self.conv_func(
+            self.ch // 2, self.ch, kernel_size=1, padding=0, bias=False
+        )
+
+        # Learnable gain parameter
+        self.gamma = P(torch.tensor(0.0), requires_grad=True)
+
+    def forward(self, x, y=None):
+        # Apply convs
+        theta = self.theta(x)
+        phi = F.max_pool2d(self.phi(x), [2, 2])
+        g = F.max_pool2d(self.g(x), [2, 2])
+
+        # Perform reshapes
+        theta = theta.view(-1, self.ch // 8, x.shape[2] * x.shape[3])
+        phi = phi.view(-1, self.ch // 8, x.shape[2] * x.shape[3] // 4)
+        g = g.view(-1, self.ch // 2, x.shape[2] * x.shape[3] // 4)
+
+        # Matmul and softmax to get attention maps
+        beta = F.softmax(torch.bmm(theta.transpose(1, 2), phi), -1)
+
+        # Attention map times g path
+        o = self.o(
+            torch.bmm(g, beta.transpose(1, 2)).view(
+                -1, self.ch // 2, x.shape[2], x.shape[3]
+            )
+        )
+        return self.gamma * o + x
+
+
 # or: ELU+init (a=0.54; gain=1.55)
 act_fn = Mish()  # nn.ReLU(inplace=True)
 
@@ -153,7 +211,16 @@ def conv_layer(ni, nf, ks=3, stride=1, zero_bn=False, act=True):
 
 
 class ResBlock(Module):
-    def __init__(self, expansion, ni, nh, stride=1, sa=False, sym=False):
+    def __init__(
+        self,
+        expansion,
+        ni,
+        nh,
+        stride=1,
+        sa=False,
+        sym=False,
+        attn_func=SimpleSelfAttention,
+    ):
         super().__init__()
         nf, ni = nh * expansion, ni * expansion
         layers = (
@@ -168,7 +235,7 @@ class ResBlock(Module):
                 conv_layer(nh, nf, 1, zero_bn=True, act=False),
             ]
         )
-        self.sa = SimpleSelfAttention(nf, ks=1, sym=sym) if sa else noop
+        self.sa = attn_func(nf, ks=1, sym=sym) if sa else noop
         self.convs = nn.Sequential(*layers)
         # TODO: check whether act=True works better
         self.idconv = noop if ni == nf else conv_layer(ni, nf, 1, act=False)
@@ -184,7 +251,14 @@ def filt_sz(recep):
 
 class MXResNetSeq(nn.Sequential):
     def __init__(
-        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
+        self,
+        expansion,
+        layers,
+        c_in=3,
+        num_classes=1000,
+        sa=False,
+        sym=False,
+        attn_func=SimpleSelfAttention,
     ):
         stem = []
         sizes = [c_in, 32, 64, 64]  # modified per Grankin
@@ -214,7 +288,17 @@ class MXResNetSeq(nn.Sequential):
         )
         init_cnn(self)
 
-    def _make_layer(self, expansion, ni, nf, blocks, stride, sa=False, sym=False):
+    def _make_layer(
+        self,
+        expansion,
+        ni,
+        nf,
+        blocks,
+        stride,
+        sa=False,
+        sym=False,
+        attn_func=SimpleSelfAttention,
+    ):
         return nn.Sequential(
             *[
                 ResBlock(
@@ -224,6 +308,7 @@ class MXResNetSeq(nn.Sequential):
                     stride if i == 0 else 1,
                     sa if i in [blocks - 1] else False,
                     sym,
+                    attn_func=attn_func,
                 )
                 for i in range(blocks)
             ]
@@ -232,7 +317,14 @@ class MXResNetSeq(nn.Sequential):
 
 class MXResNet(nn.Module):
     def __init__(
-        self, expansion, layers, c_in=3, num_classes=1000, sa=False, sym=False
+        self,
+        expansion,
+        layers,
+        c_in=3,
+        num_classes=1000,
+        sa=False,
+        sym=False,
+        attn_func=SimpleSelfAttention,
     ):
         super().__init__()
         stem = []
@@ -250,6 +342,7 @@ class MXResNet(nn.Module):
                 1 if i == 0 else 2,
                 sa=sa if i in [len(layers) - 4] else False,
                 sym=sym,
+                attn_func=attn_func,
             )
             for i, l in enumerate(layers)
         ]
@@ -260,7 +353,17 @@ class MXResNet(nn.Module):
         self.last_linear = nn.Linear(block_szs[-1] * expansion, num_classes)
         init_cnn(self)
 
-    def _make_layer(self, expansion, ni, nf, blocks, stride, sa=False, sym=False):
+    def _make_layer(
+        self,
+        expansion,
+        ni,
+        nf,
+        blocks,
+        stride,
+        sa=False,
+        sym=False,
+        attn_func=SimpleSelfAttention,
+    ):
         return nn.Sequential(
             *[
                 ResBlock(
@@ -270,6 +373,7 @@ class MXResNet(nn.Module):
                     stride if i == 0 else 1,
                     sa if i in [blocks - 1] else False,
                     sym,
+                    attn_func=attn_func,
                 )
                 for i in range(blocks)
             ]
@@ -307,7 +411,30 @@ for n, e, l in [
     name = f'mxresnet{n}'
     setattr(me, name, partial(mxresnet, expansion=e, n_layers=l, name=name))
 
+    ssa_name = f'ssamxresnet{n}'
+    setattr(
+        me,
+        ssa_name,
+        partial(
+            mxresnet,
+            expansion=e,
+            n_layers=l,
+            name=ssa_name,
+            sa=True,
+            attn_func=SimpleSelfAttention,
+        ),
+    )
+
     sa_name = f'samxresnet{n}'
     setattr(
-        me, sa_name, partial(mxresnet, expansion=e, n_layers=l, name=sa_name, sa=True)
+        me,
+        sa_name,
+        partial(
+            mxresnet,
+            expansion=e,
+            n_layers=l,
+            name=sa_name,
+            sa=True,
+            attn_func=Attention,
+        ),
     )
