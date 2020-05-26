@@ -80,6 +80,12 @@ from .resnext3D import resnext3d101
 from .resnext3D import resnext3d152
 from .resnext3D import resnext3d200
 
+from .resnest import resnest18
+from .resnest import resnest50
+from .resnest import resnest101
+from .resnest import resnest200
+from .resnest import resnest269
+
 from .slowfast import slowfast18
 from .slowfast import slowfast50
 from .slowfast import slowfast101
@@ -98,6 +104,16 @@ from .mxresnet import samxresnet50
 from .mxresnet import samxresnet50
 from .mxresnet import samxresnet101
 from .mxresnet import samxresnet152
+from .mxresnet import ssamxresnet18
+from .mxresnet import ssamxresnet34
+from .mxresnet import ssamxresnet50
+from .mxresnet import ssamxresnet50
+from .mxresnet import ssamxresnet101
+from .mxresnet import ssamxresnet152
+
+from .simclr_resnet import resnet50x1 as simclr_resnet50x1
+from .simclr_resnet import resnet50x2 as simclr_resnet50x2
+from .simclr_resnet import resnet50x4 as simclr_resnet50x4
 
 
 from .mobilenet import mobilenetv2
