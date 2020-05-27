@@ -1,5 +1,6 @@
 from functools import partial
 from collections import defaultdict
+from typing import Dict, Union
 
 import torch
 import torch.nn as nn
@@ -25,7 +26,7 @@ __all__ = [
     'resneti3d200',
 ]
 
-model_urls = {
+model_urls: Dict[str, Dict[str, Union[str, None]]] = {
     'kinetics-400': defaultdict(
         lambda: None,
         {
@@ -52,7 +53,7 @@ model_urls = {
 
 num_classes = {'kinetics-400': 400, 'moments': 339, 'multimoments': 313}
 
-pretrained_settings = defaultdict(dict)
+pretrained_settings: Dict[str, Dict[str, Dict]] = defaultdict(dict)
 input_sizes = {}
 means = {}
 stds = {}
