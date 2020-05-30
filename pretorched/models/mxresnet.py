@@ -45,6 +45,8 @@ model_urls: Dict[str, Dict[str, Union[str, None]]] = {
             'mxresnet18': 'http://pretorched-x.csail.mit.edu/models/mxresnet18_imagenet-c7af5e38.pth',
             'ssamxresnet18': 'http://pretorched-x.csail.mit.edu/models/ssamxresnet18_imagenet-0e56b40a.pth',
             'samxresnet18': 'http://pretorched-x.csail.mit.edu/models/samxresnet18_imagenet-569dc014.pth',
+            'samxresnet34': 'http://pretorched-x.csail.mit.edu/models/samxresnet34_imagenet-0ce6f5bd.pth',
+            'samxresnet50': 'http://pretorched-x.csail.mit.edu/models/samxresnet50_imagenet-e55a1081.pth',
         },
     )
 }
