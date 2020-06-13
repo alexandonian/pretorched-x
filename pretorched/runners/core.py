@@ -31,35 +31,6 @@ def get_scheduler(optimizer, scheduler_name='CosineAnnealingLR', **kwargs):
     return scheduler
 
 
-def _get_scheduler(optimizer, sched_name='ReduceLROnPlateau', **kwargs):
-    sched_func = getattr(torch.optim.lr_scheduler, sched_name)
-    if sched_name == 'ReduceLROnPlateau':
-        factor = kwargs.get('factor', 0.5)
-        patience = kwargs.get('patience', 5)
-        scheduler = sched_func(optimizer, factor=factor, patience=patience, verbose=True)
-    elif sched_name == 'CosineAnnealingLR':
-        T_max = kwargs.get('T_max', 100)
-        eta_min = kwargs.get('eta_min', 0)
-        scheduler = sched_func(optimizer, T_max, eta_min=eta_min)
-    return scheduler
-
-
-def init_weights_old(model, init_name='ortho'):
-    for module in model.modules():
-        if (isinstance(module, nn.Conv2d)
-            or isinstance(module, nn.Linear)
-                or isinstance(module, nn.Embedding)):
-            if init_name == 'ortho':
-                init.orthogonal_(module.weight)
-            elif init_name == 'N02':
-                init.normal_(module.weight, 0, 0.02)
-            elif init_name in ['glorot', 'xavier']:
-                init.xavier_normal_(module.weight)
-    else:
-        print('Init style not recognized...')
-    return model
-
-
 def init_weights(model, init_name='ortho'):
 
     def _init_weights(m, init_func):
@@ -300,5 +271,5 @@ def get_rank(group=None):
         return 0
 
 
-def is_rank0(group=None):
+def is_rank_zero(group=None):
     return get_rank(group) == 0

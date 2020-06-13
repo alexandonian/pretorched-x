@@ -200,7 +200,7 @@ def main_worker(gpu, ngpus_per_node, args):
         if args.distributed:
             train_sampler.set_epoch(epoch)
 
-        display = core.is_rank0()
+        display = core.is_rank_zero()
 
         # Train for one epoch.
         train_acc1, train_acc5, train_loss = train(train_loader, model,
@@ -241,7 +241,7 @@ def main_worker(gpu, ngpus_per_node, args):
         is_best = val_acc1 > best_acc1
         best_acc1 = max(val_acc1, best_acc1)
 
-        if core.is_rank0():
+        if core.is_rank_zero():
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
