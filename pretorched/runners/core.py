@@ -32,7 +32,6 @@ def get_scheduler(optimizer, scheduler_name='CosineAnnealingLR', **kwargs):
 
 
 def init_weights(model, init_name='ortho'):
-
     def _init_weights(m, init_func):
         if getattr(m, 'bias', None) is not None:
             nn.init.constant_(m.bias, 0)
@@ -74,83 +73,125 @@ def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **
     return model
 
 
-def get_transform(name='ImageNet', split='train', size=224, resolution=256,
-                  mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
+def get_transform(
+    name='ImageNet',
+    split='train',
+    size=224,
+    resolution=256,
+    mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225],
+):
     normalize = transforms.Normalize(mean=mean, std=std)
     data_transforms = {
-        'train': transforms.Compose([
-            transforms.RandomResizedCrop(size),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]),
-        'val': transforms.Compose([
-            transforms.Resize(resolution),
-            transforms.CenterCrop(size),
-            transforms.ToTensor(),
-            normalize,
-        ]),
-        'test': transforms.Compose([
-            transforms.Resize(resolution),
-            transforms.CenterCrop(size),
-            transforms.ToTensor(),
-            normalize,
-        ])
+        'train': transforms.Compose(
+            [
+                transforms.RandomResizedCrop(size),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        ),
+        'val': transforms.Compose(
+            [
+                transforms.Resize(resolution),
+                transforms.CenterCrop(size),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        ),
+        'test': transforms.Compose(
+            [
+                transforms.Resize(resolution),
+                transforms.CenterCrop(size),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        ),
     }
     return data_transforms.get(split)
 
 
-def get_video_transform(name='Moments', split='train', size=224, resolution=256,
-                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
-                        normalize=True):
+def get_video_transform(
+    name='Moments',
+    split='train',
+    size=224,
+    resolution=256,
+    mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225],
+    normalize=True,
+):
     norm = transforms.NormalizeVideo(mean=mean, std=std)
     cropping = {
-        'train': transforms.Compose([
-            transforms.RandomResizedCropVideo(size),
-            transforms.RandomHorizontalFlipVideo(),
-        ]),
-        'val': transforms.Compose([
-            transforms.ResizeVideo(resolution),
-            transforms.CenterCropVideo(size),
-        ]),
-        'test': transforms.Compose([
-            transforms.ResizeVideo(resolution),
-            transforms.CenterCropVideo(size)
-        ])
+        'train': transforms.Compose(
+            [
+                transforms.RandomResizedCropVideo(size),
+                transforms.RandomHorizontalFlipVideo(),
+            ]
+        ),
+        'val': transforms.Compose(
+            [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size),]
+        ),
+        'test': transforms.Compose(
+            [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size)]
+        ),
     }.get(split, 'val')
-    transform = transforms.Compose([
-        cropping,
-        transforms.CollectFrames(),
-        transforms.PILVideoToTensor(),
-        norm if normalize else transforms.IdentityTransform(),
-    ])
+    transform = transforms.Compose(
+        [
+            cropping,
+            transforms.CollectFrames(),
+            transforms.PILVideoToTensor(),
+            norm if normalize else transforms.IdentityTransform(),
+        ]
+    )
     return transform
 
 
-def get_dataset(name, root, split='train', size=224, resolution=256,
-                dataset_type='ImageFolder', **kwargs):
+def get_dataset(
+    name,
+    root,
+    split='train',
+    size=224,
+    resolution=256,
+    dataset_type='ImageFolder',
+    **kwargs,
+):
 
     Dataset = getattr(data, dataset_type, 'ImageFolder')
 
-    kwargs = {'root': root,
-              'metafile': os.path.join(root, f'{split}.txt'),
-              'transform': get_transform(name, split, size, resolution),
-              **kwargs}
+    kwargs = {
+        'root': root,
+        'metafile': os.path.join(root, f'{split}.txt'),
+        'transform': get_transform(name, split, size, resolution),
+        **kwargs,
+    }
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, kwargs)
     return Dataset(**dataset_kwargs)
 
 
-def get_video_dataset(name, data_root=None, split='train', num_frames=16, size=224, resolution=256,
-                      dataset_type='VideoRecordDataset', sampler_type='TSNFrameSampler', record_set_type='RecordSet',
-                      load_in_mem=False, segment_count=None, **kwargs):
+def get_video_dataset(
+    name,
+    data_root=None,
+    split='train',
+    num_frames=16,
+    size=224,
+    resolution=256,
+    dataset_type='VideoRecordDataset',
+    sampler_type='TSNFrameSampler',
+    record_set_type='RecordSet',
+    load_in_mem=False,
+    segment_count=None,
+    **kwargs,
+):
 
     segment_count = num_frames if segment_count is None else segment_count
 
-    metadata = cfg.get_metadata(name,
-                                split=split,
-                                dataset_type=dataset_type,
-                                record_set_type=record_set_type,
-                                data_root=data_root)
+    metadata = cfg.get_metadata(
+        name,
+        split=split,
+        dataset_type=dataset_type,
+        record_set_type=record_set_type,
+        data_root=data_root,
+    )
     kwargs = {**metadata, **kwargs, 'segment_count': segment_count}
 
     Dataset = getattr(data, dataset_type, 'VideoRecordDataset')
@@ -172,19 +213,36 @@ def get_video_dataset(name, data_root=None, split='train', num_frames=16, size=2
     return dataset
 
 
-def get_video_dataloader(name, data_root=None, split='train', num_frames=16, size=224, resolution=256,
-                         dataset_type='VideoRecordDataset', sampler_type='TSNFrameSampler', record_set_type='RecordSet',
-                         batch_size=64, num_workers=8, shuffle=True, load_in_mem=False, pin_memory=True, drop_last=False,
-                         distributed=False, segment_count=None,
-                         **kwargs):
+def get_video_dataloader(
+    name,
+    data_root=None,
+    split='train',
+    num_frames=16,
+    size=224,
+    resolution=256,
+    dataset_type='VideoRecordDataset',
+    sampler_type='TSNFrameSampler',
+    record_set_type='RecordSet',
+    batch_size=64,
+    num_workers=8,
+    shuffle=True,
+    load_in_mem=False,
+    pin_memory=True,
+    drop_last=False,
+    distributed=False,
+    segment_count=None,
+    **kwargs,
+):
 
     segment_count = num_frames if segment_count is None else segment_count
 
-    metadata = cfg.get_metadata(name,
-                                split=split,
-                                dataset_type=dataset_type,
-                                record_set_type=record_set_type,
-                                data_root=data_root)
+    metadata = cfg.get_metadata(
+        name,
+        split=split,
+        dataset_type=dataset_type,
+        record_set_type=record_set_type,
+        data_root=data_root,
+    )
     kwargs = {**metadata, **kwargs, 'segment_count': segment_count}
 
     Dataset = getattr(data, dataset_type, 'VideoRecordDataset')
@@ -204,63 +262,156 @@ def get_video_dataloader(name, data_root=None, split='train', num_frames=16, siz
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, full_kwargs)
     dataset = Dataset(**dataset_kwargs)
 
-    loader_sampler = DistributedSampler(dataset) if (distributed and split == 'train') else None
-    return DataLoader(dataset, batch_size=batch_size, sampler=loader_sampler,
-                      shuffle=(sampler is None and shuffle), num_workers=num_workers,
-                      pin_memory=pin_memory, drop_last=drop_last)
+    loader_sampler = (
+        DistributedSampler(dataset) if (distributed and split == 'train') else None
+    )
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=loader_sampler,
+        shuffle=(sampler is None and shuffle),
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=drop_last,
+    )
 
 
-def get_hybrid_dataset(name, root, split='train', size=224, resolution=256,
-                       dataset_type='ImageFolder', load_in_mem=False):
+def get_hybrid_dataset(
+    name,
+    root,
+    split='train',
+    size=224,
+    resolution=256,
+    dataset_type='ImageFolder',
+    load_in_mem=False,
+):
     if name != 'Hybrid1365':
         raise ValueError(f'Hybrid Dataset: {name} not implemented')
-    imagenet_root = cfg.get_root_dirs('ImageNet', dataset_type=dataset_type,
-                                      resolution=resolution, data_root=root)
-    places365_root = cfg.get_root_dirs('Places365', dataset_type=dataset_type,
-                                       resolution=resolution, data_root=root)
-    imagenet_dataset = get_dataset('ImageNet', resolution=resolution, size=size,
-                                   dataset_type=dataset_type, load_in_mem=load_in_mem,
-                                   split=split, root=imagenet_root)
-    placess365_dataset = get_dataset('Places365', resolution=resolution, size=size,
-                                     dataset_type=dataset_type, load_in_mem=load_in_mem,
-                                     target_transform=functools.partial(add, 1000),
-                                     split=split, root=places365_root)
+    imagenet_root = cfg.get_root_dirs(
+        'ImageNet', dataset_type=dataset_type, resolution=resolution, data_root=root
+    )
+    places365_root = cfg.get_root_dirs(
+        'Places365', dataset_type=dataset_type, resolution=resolution, data_root=root
+    )
+    imagenet_dataset = get_dataset(
+        'ImageNet',
+        resolution=resolution,
+        size=size,
+        dataset_type=dataset_type,
+        load_in_mem=load_in_mem,
+        split=split,
+        root=imagenet_root,
+    )
+    placess365_dataset = get_dataset(
+        'Places365',
+        resolution=resolution,
+        size=size,
+        dataset_type=dataset_type,
+        load_in_mem=load_in_mem,
+        target_transform=functools.partial(add, 1000),
+        split=split,
+        root=places365_root,
+    )
     return torch.utils.data.ConcatDataset((imagenet_dataset, placess365_dataset))
 
 
-def get_dataloader(name, data_root=None, split='train', size=224, resolution=256,
-                   dataset_type='ImageFolder', batch_size=64, num_workers=8, shuffle=True,
-                   load_in_mem=False, pin_memory=True, drop_last=True, distributed=False,
-                   **kwargs):
+def get_dataloader(
+    name,
+    data_root=None,
+    split='train',
+    size=224,
+    resolution=256,
+    dataset_type='ImageFolder',
+    batch_size=64,
+    num_workers=8,
+    shuffle=True,
+    load_in_mem=False,
+    pin_memory=True,
+    drop_last=True,
+    distributed=False,
+    **kwargs,
+):
     if name in cfg.VIDEO_DATASETS:
-        return get_video_dataloader(name, data_root=data_root, split=split, size=size, resolution=resolution,
-                                    dataset_type=dataset_type, batch_size=batch_size, num_workers=num_workers,
-                                    shuffle=shuffle, load_in_mem=load_in_mem, pin_memory=pin_memory,
-                                    drop_last=drop_last, distributed=distributed, **kwargs)
-    root = cfg.get_root_dirs(name, dataset_type=dataset_type,
-                             resolution=resolution, data_root=data_root)
+        return get_video_dataloader(
+            name,
+            data_root=data_root,
+            split=split,
+            size=size,
+            resolution=resolution,
+            dataset_type=dataset_type,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            shuffle=shuffle,
+            load_in_mem=load_in_mem,
+            pin_memory=pin_memory,
+            drop_last=drop_last,
+            distributed=distributed,
+            **kwargs,
+        )
+    root = cfg.get_root_dirs(
+        name, dataset_type=dataset_type, resolution=resolution, data_root=data_root
+    )
     get_dset_func = get_hybrid_dataset if name == 'Hybrid1365' else get_dataset
-    dataset = get_dset_func(name=name, root=root, size=size,
-                            split=split, resolution=resolution,
-                            dataset_type=dataset_type, load_in_mem=load_in_mem,
-                            **kwargs)
+    dataset = get_dset_func(
+        name=name,
+        root=root,
+        size=size,
+        split=split,
+        resolution=resolution,
+        dataset_type=dataset_type,
+        load_in_mem=load_in_mem,
+        **kwargs,
+    )
 
-    sampler = DistributedSampler(dataset) if (distributed and split == 'train') else None
-    return DataLoader(dataset, batch_size=batch_size, sampler=sampler,
-                      shuffle=(sampler is None and shuffle), num_workers=num_workers,
-                      pin_memory=pin_memory, drop_last=drop_last)
+    sampler = (
+        DistributedSampler(dataset) if (distributed and split == 'train') else None
+    )
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=sampler,
+        shuffle=(sampler is None and shuffle),
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=drop_last,
+    )
 
 
-def get_dataloaders(name, root, dataset_type='ImageFolder', size=224, resolution=256,
-                    batch_size=32, num_workers=12, shuffle=True, distributed=False,
-                    load_in_mem=False, pin_memory=True, drop_last=True,
-                    splits=['train', 'val'], **kwargs):
+def get_dataloaders(
+    name,
+    root,
+    dataset_type='ImageFolder',
+    size=224,
+    resolution=256,
+    batch_size=32,
+    num_workers=12,
+    shuffle=True,
+    distributed=False,
+    load_in_mem=False,
+    pin_memory=True,
+    drop_last=True,
+    splits=['train', 'val'],
+    **kwargs,
+):
     dataloaders = {
-        split: get_dataloader(name, data_root=root, split=split, size=size, resolution=resolution,
-                              dataset_type=dataset_type, batch_size=batch_size, num_workers=num_workers,
-                              shuffle=shuffle, load_in_mem=load_in_mem, pin_memory=pin_memory, drop_last=drop_last,
-                              distributed=distributed, **kwargs)
-        for split in splits}
+        split: get_dataloader(
+            name,
+            data_root=root,
+            split=split,
+            size=size,
+            resolution=resolution,
+            dataset_type=dataset_type,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            shuffle=shuffle,
+            load_in_mem=load_in_mem,
+            pin_memory=pin_memory,
+            drop_last=drop_last,
+            distributed=distributed,
+            **kwargs,
+        )
+        for split in splits
+    }
     return dataloaders
 
 
@@ -273,3 +424,65 @@ def get_rank(group=None):
 
 def is_rank_zero(group=None):
     return get_rank(group) == 0
+
+
+def init_ddp(
+    gpu_idx,
+    node_rank=-1,
+    ngpus_per_node=None,
+    dist_backend='nccl',
+    dist_url='tcp://localhost:23456',
+    world_size=-1,
+    group_name='',
+):
+    if dist_url == "env://" and node_rank == -1:
+        node_rank = int(os.environ["RANK"])
+    if node_rank == -1:
+        node_rank = int(os.environ.get('OMPI_COMM_WORLD_RANK'))
+    rank = node_rank * ngpus_per_node + gpu_idx
+    if ngpus_per_node is None:
+        ngpus_per_node = torch.cuda.device_count()
+    dist.init_process_group(
+        backend=dist_backend, init_method=dist_url, world_size=world_size, rank=rank,
+    )
+
+
+def resume_checkpoint(
+    checkpoint_path,
+    model=None,
+    optimizer=None,
+    scheduler=None,
+    model_key='state_dict',
+    optimizer_key='optimizer',
+    scheduler_key='scheduler',
+):
+    # TODO: FINISH THIS
+    if os.path.isfile(checkpoint_path):
+        print(f"=> loading checkpoint '{checkpoint_path}'")
+        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        args.start_epoch = checkpoint['epoch']
+        best_acc1 = checkpoint['best_acc1']
+        if model is not None:
+            model.load_state_dict(checkpoint[model_key])
+        if optimizer is not None:
+            try:
+                optimizer.load_state_dict(checkpoint[optimizer_key])
+            except ValueError(f'Could not find optimizer state'):
+                pass
+        try:
+            scheduler.load_state_dict(checkpoint['scheduler'])
+        except Exception:
+            print(f'Could not load scheduler state_dict for {args.scheduler}')
+            try:
+                scheduler.step(checkpoint['epoch'])
+                print(f'setting scheduler learning rate to: {scheduler.get_lr()}')
+            except Exception:
+                pass
+
+        print(
+            "=> loaded checkpoint '{}' (epoch {})".format(
+                checkpoint_path, checkpoint['epoch']
+            )
+        )
+    else:
+        raise FileNotFoundError(f"=> no checkpoint found at '{checkpoint_path}'")
