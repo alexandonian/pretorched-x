@@ -426,7 +426,7 @@ def is_rank_zero(group=None):
     return get_rank(group) == 0
 
 
-def init_ddp(
+def init_ddp_env(
     gpu_idx,
     node_rank=-1,
     ngpus_per_node=None,
@@ -445,6 +445,29 @@ def init_ddp(
     dist.init_process_group(
         backend=dist_backend, init_method=dist_url, world_size=world_size, rank=rank,
     )
+
+
+def distribute_model(model, device='cuda', gpu_idx=None):
+
+    # For multiprocessing distributed, DistributedDataParallel constructor
+    # should always set the single device scope, otherwise,
+    # DistributedDataParallel will use all available devices.
+    if device == 'cpu':
+        model.cpu()
+        return model
+    if gpu_idx is not None:
+        torch.cuda.set_device(gpu_idx)
+        model.to(f'{device}:{gpu_idx}')
+        # When using a single GPU per process and per
+        # DistributedDataParallel, we need to divide the batch size
+        # ourselves based on the total number of GPUs we have
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[gpu_idx])
+    else:
+        model.cuda()
+        # DistributedDataParallel will divide and allocate batch_size to all
+        # available GPUs if device_ids are not set
+        model = torch.nn.parallel.DistributedDataParallel(model)
+    return model
 
 
 def resume_checkpoint(

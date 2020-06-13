@@ -24,6 +24,8 @@ from .utils import AverageMeter, ProgressMeter
 
 best_acc1 = 0
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 def main():
     args = cfg.parse_args()
@@ -84,7 +86,7 @@ def main_worker(gpu, ngpus_per_node, args):
         print("Use GPU: {} for training".format(args.gpu))
 
     if args.distributed:
-        core.init_ddp(
+        core.init_ddp_env(
             args.gpu,
             args.rank,
             ngpus_per_node,
@@ -99,27 +101,9 @@ def main_worker(gpu, ngpus_per_node, args):
     input_size = model.input_size[-1]
 
     if args.distributed:
-        # For multiprocessing distributed, DistributedDataParallel constructor
-        # should always set the single device scope, otherwise,
-        # DistributedDataParallel will use all available devices.
-        if args.gpu is not None:
-            torch.cuda.set_device(args.gpu)
-            model.cuda(args.gpu)
-            # When using a single GPU per process and per
-            # DistributedDataParallel, we need to divide the batch size
-            # ourselves based on the total number of GPUs we have
-            args.batch_size = int(args.batch_size / ngpus_per_node)
-            args.num_workers = int(
-                (args.num_workers + ngpus_per_node - 1) / ngpus_per_node
-            )
-            model = torch.nn.parallel.DistributedDataParallel(
-                model, device_ids=[args.gpu]
-            )
-        else:
-            model.cuda()
-            # DistributedDataParallel will divide and allocate batch_size to all
-            # available GPUs if device_ids are not set
-            model = torch.nn.parallel.DistributedDataParallel(model)
+        args.batch_size = int(args.batch_size / ngpus_per_node)
+        args.num_workers = int((args.num_workers + ngpus_per_node - 1) / ngpus_per_node)
+        model = core.distribute_model(model, device=device, gpu_idx=args.gpu)
     elif args.gpu is not None:
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
@@ -129,10 +113,10 @@ def main_worker(gpu, ngpus_per_node, args):
             model.features = torch.nn.DataParallel(model.features)
             model.cuda()
         else:
-            model = torch.nn.DataParallel(model).cuda()
+            model = torch.nn.DataParallel(model).to(device)
 
     # Define loss function (criterion) and optimizer
-    criterion = nn.CrossEntropyLoss().cuda(args.gpu)
+    criterion = nn.CrossEntropyLoss().to(device)
 
     optimizer = core.get_optimizer(
         model,
@@ -301,8 +285,8 @@ def train(train_loader, model, criterion, optimizer, logger, epoch, args, displa
         itr += 1
 
         if args.gpu is not None:
-            images = images.cuda(args.gpu, non_blocking=True)
-        target = target.cuda(args.gpu, non_blocking=True)
+            images = images.to(device, non_blocking=True)
+        target = target.to(device, non_blocking=True)
 
         # compute output
         output = model(images)
@@ -353,8 +337,8 @@ def validate(val_loader, model, criterion, args, display=True):
         end = time.time()
         for i, (images, target) in enumerate(val_loader):
             if args.gpu is not None:
-                images = images.cuda(args.gpu, non_blocking=True)
-            target = target.cuda(args.gpu, non_blocking=True)
+                images = images.to(device, non_blocking=True)
+            target = target.to(device, non_blocking=True)
 
             # compute output
             output = model(images)
