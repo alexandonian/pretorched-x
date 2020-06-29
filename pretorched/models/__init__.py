@@ -115,6 +115,7 @@ from .simclr_resnet import resnet50x1 as simclr_resnet50x1
 from .simclr_resnet import resnet50x2 as simclr_resnet50x2
 from .simclr_resnet import resnet50x4 as simclr_resnet50x4
 
+from .moco import resnet50 as moco_resnet50
 
 from .mobilenet import mobilenetv2
 
