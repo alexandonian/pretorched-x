@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from multiprocessing import Process
 # from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing.pool import Pool as Pool
 from typing import List, Union
@@ -14,7 +15,6 @@ from typing import List, Union
 import ffmpeg
 import numpy as np
 import PIL
-import skimage
 import torch
 import torchvision
 from PIL import Image
@@ -130,8 +130,7 @@ def extract_frames(video, video_root='', frame_root='', tmpl='{:06d}.jpg', fps=2
     out_filename = os.path.join(frame_root, name, tmpl)
     os.makedirs(os.path.dirname(out_filename), exist_ok=True)
     (
-        ffmpeg
-        .input(in_filename)
+        ffmpeg.input(in_filename)
         .filter('fps', fps=fps, round='up')
         .output(out_filename)
         .global_args('-loglevel', 'error')
@@ -142,12 +141,16 @@ def extract_frames(video, video_root='', frame_root='', tmpl='{:06d}.jpg', fps=2
 def _extract_frames(video, video_root='', frame_root='', tmpl='%06d.jpg'):
     """Extract frames from video using call to ffmpeg."""
     print(f'extracting frames from {video}')
-    return subprocess.run([
-        'ffmpeg', '-i',
-        os.path.join(video_root, video),
-        '-vf', 'scale=320:-1,fps=25',
-        os.path.join(frame_root, video.rstrip('.mp4'), tmpl),
-    ])
+    return subprocess.run(
+        [
+            'ffmpeg',
+            '-i',
+            os.path.join(video_root, video),
+            '-vf',
+            'scale=320:-1,fps=25',
+            os.path.join(frame_root, video.rstrip('.mp4'), tmpl),
+        ]
+    )
 
 
 def _make_collage(frame_dir, collage_root='', file_tmpl='{:06d}.jpg'):
@@ -155,9 +158,12 @@ def _make_collage(frame_dir, collage_root='', file_tmpl='{:06d}.jpg'):
     files = os.listdir(frame_dir)
     transform = torchvision.transforms.ToTensor()
     try:
-        frames = torch.stack([
-            transform(PIL.Image.open(os.path.join(frame_dir, f)).convert('RGB'))
-            for f in files])
+        frames = torch.stack(
+            [
+                transform(PIL.Image.open(os.path.join(frame_dir, f)).convert('RGB'))
+                for f in files
+            ]
+        )
     except RuntimeError as e:
         print(e, f'had trouble loading frames for video: {frame_dir}')
         return
@@ -169,6 +175,7 @@ def _make_collage(frame_dir, collage_root='', file_tmpl='{:06d}.jpg'):
 
 def _extraction_closure(video_root, frame_root, collage_root):
     """Closure that returns function to extract frames for video list."""
+
     def func(video_list):
         for video in video_list:
             frame_dir = video.rstrip('.mp4')
@@ -176,29 +183,35 @@ def _extraction_closure(video_root, frame_root, collage_root):
             os.makedirs(frame_path, exist_ok=True)
             extract_frames(video, video_root, frame_root)
             make_collage(frame_path, collage_root)
+
     return func
 
 
 def extraction_closure(video_root, frame_root):
     """Closure that returns function to extract frames for video list."""
+
     def func(video_list):
         for video in video_list:
             frame_dir = video.rstrip('.mp4')
             frame_path = os.path.join(frame_root, frame_dir)
             os.makedirs(frame_path, exist_ok=True)
             extract_frames(video, video_root, frame_root)
+
     return func
 
 
 def videos_to_frames(video_root, frame_root, num_threads=100):
     """videos_to_frames."""
     categories = os.listdir(video_root)
-    videos = [[os.path.join(cat, v)
-               for v in os.listdir(os.path.join(video_root, cat))]
-              for cat in categories]
+    videos = [
+        [os.path.join(cat, v) for v in os.listdir(os.path.join(video_root, cat))]
+        for cat in categories
+    ]
 
     # func = extraction_closure(video_root, frame_root)
-    func = functools.partial(extract_frames, video_root=video_root, frame_root=frame_root)
+    func = functools.partial(
+        extract_frames, video_root=video_root, frame_root=frame_root
+    )
     pool = Pool(num_threads)
     pool.map(func, videos)
 
@@ -208,14 +221,14 @@ def frames_to_collages(frame_root, collage_root, num_threads=100):
     for cat in categories:
         os.makedirs(os.path.join(collage_root, cat), exist_ok=True)
     # frame_dirs = [
-        # [os.path.join(cat, f)
-        #  for f in os.listdir(os.path.join(frame_root, cat))
-        #  if not os.path.exists(os.path.join(collage_root, cat, f'{f}.jpg'))]
-        # for cat in categories]
+    # [os.path.join(cat, f)
+    #  for f in os.listdir(os.path.join(frame_root, cat))
+    #  if not os.path.exists(os.path.join(collage_root, cat, f'{f}.jpg'))]
+    # for cat in categories]
     frame_dirs = [
-        [os.path.join(cat, f)
-         for f in os.listdir(os.path.join(frame_root, cat))]
-        for cat in categories]
+        [os.path.join(cat, f) for f in os.listdir(os.path.join(frame_root, cat))]
+        for cat in categories
+    ]
 
     func = collages_closure(frame_root, collage_root)
     pool = Pool(num_threads)
@@ -231,8 +244,9 @@ def get_info(filename, strict=False):
             sys.exit(1)
         return {}
 
-    video_stream = next((stream for stream in probe['streams']
-                         if stream['codec_type'] == 'video'), None)
+    video_stream = next(
+        (stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None
+    )
     if video_stream is None:
         print('No video stream found', file=sys.stderr)
         if strict:
@@ -257,16 +271,13 @@ def load_video(filename, fps=25, height=None, width=None):
         height, width = get_size(filename)
 
     out, _ = (
-        ffmpeg
-        .input(filename)
+        ffmpeg.input(filename)
         .filter('fps', fps=fps, round='up')
         .filter('scale', width, height)
         .output('pipe:', format='rawvideo', pix_fmt='rgb24')
-        .run(capture_stdout=True, capture_stderr=True))
-    return (
-        np
-        .frombuffer(out, np.uint8)
-        .reshape([-1, height, width, 3]))
+        .run(capture_stdout=True, capture_stderr=True)
+    )
+    return np.frombuffer(out, np.uint8).reshape([-1, height, width, 3])
 
 
 def make_grid(tensor, nrow=8):
@@ -282,14 +293,12 @@ def make_grid(tensor, nrow=8):
         for x in range(xmaps):
             if k >= nmaps:
                 break
-            grid[y * height: (y + 1) * height,
-                 x * width: (x + 1) * width] = tensor[k]
+            grid[y * height : (y + 1) * height, x * width : (x + 1) * width] = tensor[k]
             k = k + 1
     return grid
 
 
-def make_collage(video_filename, collage_filename=None,
-                 smallest_side_size=320):
+def make_collage(video_filename, collage_filename=None, smallest_side_size=320):
     if collage_filename is None:
         collage_filename = video_filename.rstrip('.mp4') + '.jpg'
     size = get_size(video_filename)
@@ -314,21 +323,23 @@ def videos_to_collages(video_root, collage_root, num_workers=100):
     categories = os.listdir(video_root)
     for cat in categories:
         os.makedirs(os.path.join(collage_root, cat), exist_ok=True)
-    videos = [(os.path.join(cat, f), video_root, collage_root)
-              for cat in categories
-              for f in os.listdir(os.path.join(video_root, cat))
-              if not os.path.exists(os.path.join(collage_root, cat, f.replace('.mp4', '.jpg')))]
+    videos = [
+        (os.path.join(cat, f), video_root, collage_root)
+        for cat in categories
+        for f in os.listdir(os.path.join(video_root, cat))
+        if not os.path.exists(
+            os.path.join(collage_root, cat, f.replace('.mp4', '.jpg'))
+        )
+    ]
 
     random.shuffle(videos)
     pool = Pool(num_workers)
     pool.map(_videos_to_collages, videos)
 
 
-def frames_to_video(input, output, pattern_type='glob', framerate=30,
-                    vcodec='libx264'):
+def frames_to_video(input, output, pattern_type='glob', framerate=30, vcodec='libx264'):
     (
-        ffmpeg
-        .input(input, pattern_type=pattern_type, framerate=framerate)
+        ffmpeg.input(input, pattern_type=pattern_type, framerate=framerate)
         .output(output, vcodec=vcodec)
         .global_args('-loglevel', 'error', '-n')
         .run()
@@ -336,25 +347,36 @@ def frames_to_video(input, output, pattern_type='glob', framerate=30,
 
 
 def array_to_video(images, filename, framerate=30, vcodec='libx264'):
+    """Save numpy array to a video file.
+
+    Args:
+        images: [n, h, w, c] uint8 in range [0..255].
+    """
     if not isinstance(images, np.ndarray):
         images = np.asarray(images)
     n, height, width, channels = images.shape
     process = (
-        ffmpeg
-        .input('pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height))
+        ffmpeg.input(
+            'pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height)
+        )
         .output(filename, pix_fmt='yuv420p', vcodec=vcodec, r=framerate)
         .global_args('-loglevel', 'error')
         .overwrite_output()
         .run_async(pipe_stdin=True)
     )
     for frame in images:
-        process.stdin.write(
-            frame
-            .astype(np.uint8)
-            .tobytes()
-        )
+        process.stdin.write(frame.astype(np.uint8).tobytes())
     process.stdin.close()
     process.wait()
+
+
+def async_array_to_video(images, filename):
+    p = Process(
+        target=array_to_video,
+        args=(images, filename),
+        kwargs={'vcodec': 'libx264'},
+    )
+    p.start()
 
 
 def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
@@ -363,8 +385,7 @@ def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     h, w = map(int, [((s * scale) // 2) * 2 for s in size])
     os.makedirs(os.path.dirname(output), exist_ok=True)
     (
-        ffmpeg
-        .input(input)
+        ffmpeg.input(input)
         .filter('scale', w, h)
         .output(output, vcodec=vcodec)
         .global_args('-loglevel', 'error', '-n')
@@ -379,11 +400,13 @@ def encode_video(filename, outname, vcodec='libx264', crf=18, scale=1.0, fps=Non
         stream = ffmpeg.filter(stream, 'scale', f'{scale}*iw', f'{scale}*ih')
     if fps is not None:
         stream = ffmpeg.filter(stream, 'fps', fps=fps, round='up')
-    stream = ffmpeg.output(stream, outname, **outkwargs).global_args('-loglevel', 'error', '-n')
+    stream = ffmpeg.output(stream, outname, **outkwargs).global_args(
+        '-loglevel', 'error', '-n'
+    )
     ffmpeg.run(stream)
 
 
-def reencode_video(filename, vcodec='libx264', crf=33, scale=1.0, fps=None):
+def reencode_video(filename, vcodec='libx264', crf=18, scale=1.0, fps=None):
     with tempfile.TemporaryDirectory() as tmpdirname:
         outname = os.path.join(tmpdirname, os.path.basename(filename))
         encode_video(filename, outname, vcodec=vcodec, crf=crf, scale=scale, fps=fps)
