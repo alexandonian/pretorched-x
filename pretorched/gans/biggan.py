@@ -337,7 +337,10 @@ class Generator(nn.Module):
     # G.shared in this forward function, it would be harder to handle.
     def forward(self, z, y, embed=False):
         if embed:
-            y = self.shared(y)
+            if y.ndim > 1:
+                y = y @ self.shared.weight
+            else:
+                y = self.shared(y)
         # If hierarchical, concatenate zs and ys
         if self.hier:
             zs = torch.split(z, self.z_chunk_size, 1)

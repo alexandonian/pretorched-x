@@ -6,10 +6,10 @@ officially unofficial BigGAN release found here:
 https://github.com/ajbrock/BigGAN-PyTorch
 
 """
-from torch.nn import Parameter
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn import Parameter
 from torch.nn import Parameter as P
 
 
