@@ -94,6 +94,7 @@ def profile(model, inputs, custom_ops=None, verbose=True):
         nn.UpsamplingBilinear2d: count_upsample,
         nn.UpsamplingNearest2d: count_upsample,
         nn.LocalResponseNorm: zero_ops,
+        nn.Identity: zero_ops,
     }
 
     handler_collection = []
@@ -178,14 +179,16 @@ def profile(model, inputs, custom_ops=None, verbose=True):
         data['Input'].append(tuple(getattr(m, '_input_size', (0,))))
         data['Output'].append(tuple(getattr(m, '_output_size', (0,))))
         # data['Output'].append(tuple(m._output_size))
-        data['Weight'].append(tuple(getattr(m, 'weight', torch.tensor([])).size()))
+        # data['Weight'].append(tuple(getattr(m, 'weight', torch.tensor([])).size()))
+        if getattr(m, 'weight', None) is not None:
+            data['Weight'].append(tuple(getattr(m, 'weight', torch.tensor([])).size()))
         data['Kernel_Size'].append(getattr(m, 'kernel_size', 0))
         data['Padding'].append(getattr(m, 'padding', 0))
         data['Stride'].append(getattr(m, 'stride', 0))
         data['Params'].append(m.total_params.item())
         data['Mults'].append(m.total_muls.item())
         data['Ops'].append(m.total_ops.item())
-        data['Time'].append(m._forward_time)
+        data['Time'].append(getattr(m, '_forward_time', 0))
 
     max_len = {k: max(len(str(x)) for x in v + [k]) for k, v in data.items()}
     totals = {k: sum(v) if k in ['Params', 'Mults', 'Ops', 'Time'] else '' for k, v in data.items()}
