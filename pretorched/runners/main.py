@@ -9,7 +9,6 @@ import torch
 import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
-import torch.distributed as dist
 import torch.multiprocessing as mp
 import torch.utils.data
 import torch.utils.data.distributed
@@ -185,8 +184,8 @@ def main_worker(gpu, ngpus_per_node, args):
         'epoch': [],
         'loss': [],
         'val_loss': [],
-        'acc': {'avg': [], 'top1': [], 'top5': [],},
-        'val_acc': {'avg': [], 'top1': [], 'top5': [],},
+        'acc': {'avg': [], 'top1': [], 'top5': []},
+        'val_acc': {'avg': [], 'top1': [], 'top5': []},
     }
 
     for epoch in range(args.start_epoch, args.epochs):
@@ -253,7 +252,7 @@ def main_worker(gpu, ngpus_per_node, args):
             )
 
             with open(args.log_file, 'w') as f:
-                json.dump(history, f, indent=4)
+                json.dump(vars(logger.history), f, indent=4)
 
 
 def is_local_rank0(args, ngpus_per_node):
@@ -284,6 +283,10 @@ def train(train_loader, model, criterion, optimizer, logger, epoch, args, displa
         data_time.update(time.time() - end)
         itr += 1
 
+        print(itr)
+
+        if itr > 200:
+            break
         if args.gpu is not None:
             images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
@@ -317,6 +320,7 @@ def train(train_loader, model, criterion, optimizer, logger, epoch, args, displa
                 },
                 step=itr,
             )
+            print(vars(logger.history))
 
     return top1.avg, top5.avg, losses.avg
 

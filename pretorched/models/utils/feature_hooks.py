@@ -25,7 +25,11 @@ class FeatureHooks:
             x = x[0]  # unwrap input tuple
         self._feature_outputs[x.device][name] = x
 
-    def get_output(self, device):
-        output = tuple(self._feature_outputs[device].values())[::-1]
+    def get_output(self, device=None):
+        if device is None:
+            devs = list(self._feature_outputs.keys())
+            assert len(devs) == 1
+            device = devs[0]
+        output = tuple(self._feature_outputs[device].values())
         self._feature_outputs[device] = OrderedDict()  # clear after reading
         return output

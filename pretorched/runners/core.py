@@ -5,12 +5,12 @@ from operator import add
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+from pretorched import data, models, optim, utils
+from pretorched.data import samplers, transforms
 from torch.nn import init
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-
-from pretorched import data, models, optim, utils
-from pretorched.data import samplers, transforms
+from tqdm import tqdm
 
 from . import config as cfg
 
@@ -52,13 +52,15 @@ def init_weights(model, init_name='ortho'):
     return model
 
 
-def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **kwargs):
+def get_model(
+    model_name, num_classes=None, pretrained='imagenet', init_name=None, **kwargs
+):
     model_func = getattr(models, model_name)
     if pretrained is not None:
         # TODO Update THIS!
         nc = {k.lower(): v for k, v in cfg.NUM_CLASSES.items()}.get(pretrained)
         model = model_func(num_classes=nc, pretrained=pretrained, **kwargs)
-        if nc != num_classes:
+        if num_classes is not None and nc != num_classes:
             in_feat = model.last_linear.in_features
             last_linear = nn.Linear(in_feat, num_classes)
             if init_name is not None:
@@ -66,7 +68,12 @@ def get_model(model_name, num_classes, pretrained='imagenet', init_name=None, **
                 last_linear = init_weights(last_linear, init_name)
             model.last_linear = last_linear
     else:
-        model = model_func(num_classes=num_classes, pretrained=pretrained, **kwargs)
+        if num_classes is None:
+            # num_classes = 1000
+            # print(f'num_classes not specified! Defaulting to {num_classes}')
+            model = model_func(pretrained=pretrained, **kwargs)
+        else:
+            model = model_func(num_classes=num_classes, pretrained=pretrained, **kwargs)
         if init_name is not None:
             print(f'Initializing {model_name} with {init_name}.')
             model = init_weights(model, init_name)
@@ -129,7 +136,7 @@ def get_video_transform(
             ]
         ),
         'val': transforms.Compose(
-            [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size),]
+            [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size)]
         ),
         'test': transforms.Compose(
             [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size)]
@@ -493,7 +500,7 @@ def resume_checkpoint(
             except ValueError(f'Could not find optimizer state'):
                 pass
         try:
-            scheduler.load_state_dict(checkpoint['scheduler'])
+            scheduler.load_state_dict(checkpoint[scheduler_key])
         except Exception:
             print(f'Could not load scheduler state_dict for {args.scheduler}')
             try:
@@ -509,3 +516,34 @@ def resume_checkpoint(
         )
     else:
         raise FileNotFoundError(f"=> no checkpoint found at '{checkpoint_path}'")
+
+
+def featurize(
+    image_dir,
+    model_name='resnet50',
+    pretrained='imagenet',
+    batch_size=64,
+    device='cuda',
+    num_workers=2,
+    pin_memory=True,
+):
+    model = get_model(model_name, pretrained=pretrained)
+    dataset = data.ImageDir(image_dir, transform=get_transform(split='val'))
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        drop_last=False,
+    )
+    model.eval()
+    model = model.to(device)
+    features = []
+    with torch.no_grad():
+        for i, (inp, label) in tqdm(enumerate(dataloader), total=len(dataloader)):
+            inp = inp.to(device)
+            feats = model.features(inp)
+            features.append(feats)
+    features = torch.cat(features)
+    return features

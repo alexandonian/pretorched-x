@@ -1,6 +1,23 @@
 from .core import *
-from .weights import load_checkpoint, load_pretrained, load_state_dict, resume_checkpoint
 from .feature_hooks import FeatureHooks
+from .nethook import InstrumentedModel
 from .opcounter import profile
+from .weights import (
+    load_checkpoint,
+    load_pretrained,
+    load_state_dict,
+    resume_checkpoint,
+    stip_module_prefix,
+)
 
-__all__ = ['FeatureHooks', 'load_checkpoint', 'load_pretrained', 'load_state_dict', 'resume_checkpoint', 'profile']
+__all__ = [
+    'FeatureHooks',
+    'InstrumentedModel',
+    'load_checkpoint',
+    'load_pretrained',
+    'load_state_dict',
+    'resume_checkpoint',
+    'profile',
+    'remove_prefix',
+    'strip_module_prefix',
+]

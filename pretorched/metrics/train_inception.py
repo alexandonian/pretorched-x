@@ -138,7 +138,7 @@ def main_worker(gpu, ngpus_per_node, args):
         print("=> creating model '{}'".format(args.arch))
         model = models.__dict__[args.arch]()
 
-    num_classes = cfg.num_classes_dict[args.dataset]
+    num_classes = cfg.NUM_CLASSES[args.dataset]
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     model.AuxLogits.fc = nn.Linear(model.AuxLogits.fc.in_features, num_classes)
 

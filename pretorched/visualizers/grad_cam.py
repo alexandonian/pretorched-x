@@ -10,7 +10,7 @@ from torch.nn import functional as F
 class _PropagationBase(object):
     def __init__(self, model):
         super().__init__()
-        self.device = next(model.parameters()).device
+        # self.device = next(model.parameters()).device
         self.model = model
         self.image = None
 
@@ -30,9 +30,13 @@ class _PropagationBase(object):
 
     def backward(self, idx):
         one_hot = self._encode_one_hot(idx)
-        print(f'one_hot: {one_hot.shape}')
-        print(f'self.preds: {self.preds.shape}')
+        # print(f'one_hot: {one_hot.shape}')
+        # print(f'self.preds: {self.preds.shape}')
         self.preds.backward(gradient=one_hot, retain_graph=True)
+
+    @property
+    def device(self):
+        return next(self.model.parameters()).device
 
 
 class BackPropagation(_PropagationBase):
@@ -104,25 +108,25 @@ class GradCAM(_PropagationBase):
         grads = self._find(self.all_grads, target_layer)
         weights = self._compute_grad_weights(grads)
 
-        print('fmaps', fmaps.shape)
-        print('fmaps[0]', fmaps[0].shape)
-        print('weights', weights.shape)
+        # print('fmaps', fmaps.shape)
+        # print('fmaps[0]', fmaps[0].shape)
+        # print('weights', weights.shape)
         o = (fmaps * weights).sum(dim=1)
         gcam = torch.clamp(o, min=0.)
-        print('o', o.shape)
+        # print('o', o.shape)
         # gcam = (fmaps[0] * weights[0]).sum(dim=0)
         # gcam = torch.clamp(gcam, min=0.)
 
         gcam -= gcam.min()
         gcam /= gcam.max()
 
-        return gcam.detach().cpu().numpy()
+        return gcam.detach()
 
 
-def apply_heatmap(gcam, raw_image, strength=0.25):
+def apply_heatmap(gcam, raw_image, strength=0.25, colormap=cv2.COLORMAP_JET):
     h, w, _ = raw_image.shape
     gcam = cv2.resize(gcam, (w, h))
-    gcam = cv2.applyColorMap(np.uint8((1 - gcam) * 255.0), cv2.COLORMAP_JET)
+    gcam = cv2.applyColorMap(np.uint8((1 - gcam) * 255.0), colormap)
     gcam = strength * gcam.astype(np.float) + (1 - strength) * raw_image.astype(np.float)
     out = gcam / gcam.max() * 255.0
     return out

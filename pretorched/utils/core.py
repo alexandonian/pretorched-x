@@ -12,7 +12,7 @@ import sys
 import time
 from collections import defaultdict
 from importlib import import_module
-from multiprocessing import Process, Queue, cpu_count
+from multiprocessing import Process, Queue, cpu_count, Pool
 from operator import itemgetter
 from typing import Collection
 
@@ -51,6 +51,7 @@ def lazy_property(fn):
         if not hasattr(self, attr_name):
             setattr(self, attr_name, fn(self))
         return getattr(self, attr_name)
+
     return _lazy_property
 
 
@@ -78,8 +79,7 @@ class HTML(object):
             cls_ = ' class="{}"'.format(cls_)
         if attr is not '':
             attr = ' {}'.format(attr)
-        return ('<{}{}{}{}>{}</{}>'
-                .format(elem, id_, cls_, attr, inner, elem))
+        return '<{}{}{}{}>{}</{}>'.format(elem, id_, cls_, attr, inner, elem)
 
     @staticmethod
     def div(inner='', id_='', cls_='', attr=''):
@@ -92,13 +92,15 @@ class HTML(object):
     @staticmethod
     def ul(li_list, ul_class='', li_class='', li_attr=''):
         inner = '\n\t'.join(
-            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list])
+            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list]
+        )
         return HTML.element('ul', '\n\t' + inner + '\n', cls_=ul_class)
 
     @staticmethod
     def ol(li_list, ol_class='', li_class='', li_attr=''):
         inner = '\n\t'.join(
-            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list])
+            [HTML.element('li', li, cls_=li_class, attr=li_attr) for li in li_list]
+        )
         return HTML.element('ol', '\n\t' + inner + '\n', cls_=ol_class)
 
     @staticmethod
@@ -106,14 +108,27 @@ class HTML(object):
         return HTML.element('img', attr='src="{}"; style="{}";'.format(src, style))
 
     @staticmethod
-    def video(src='', preload='auto', onmouseover='this.play();',
-              onmouseout='this.pause();', style=''):
-        return HTML.element('video', attr='src="{}" onmouseover="{}" onmouseout="{}" style="{}"'
-                            .format(src, onmouseover, onmouseout, style))
+    def video(
+        src='',
+        preload='auto',
+        onmouseover='this.play();',
+        onmouseout='this.pause();',
+        style='',
+    ):
+        return HTML.element(
+            'video',
+            attr='src="{}" onmouseover="{}" onmouseout="{}" style="{}"'.format(
+                src, onmouseover, onmouseout, style
+            ),
+        )
 
     @staticmethod
     def a(inner='', href='', data_toggle=''):
-        return HTML.element('a', inner=inner, attr='href="{}" data-toggle="{}"'.format(href, data_toggle))
+        return HTML.element(
+            'a',
+            inner=inner,
+            attr='href="{}" data-toggle="{}"'.format(href, data_toggle),
+        )
 
     @staticmethod
     def p(inner=''):
@@ -121,19 +136,47 @@ class HTML(object):
 
     @staticmethod
     def panel(label, category, li):
-        return HTML.div(cls_='panel panel-default', inner='\n'.join([
-            HTML.div(cls_='panel-heading',
-                     inner=HTML.element('h4', cls_="panel-title",
-                                        inner=HTML.a(data_toggle='collapse', href='#{}'.format(label),
-                                                     inner='{} (n={})'.format(category, len(li))))),
-            HTML.div(id_='{}'.format(label), cls_='panel-collapse collapse',
-                     inner=HTML.ul(HTML.li, ul_class='list-group', li_class='list-group-item', li_attr="style=\"overflow: auto;\""))]))
+        return HTML.div(
+            cls_='panel panel-default',
+            inner='\n'.join(
+                [
+                    HTML.div(
+                        cls_='panel-heading',
+                        inner=HTML.element(
+                            'h4',
+                            cls_="panel-title",
+                            inner=HTML.a(
+                                data_toggle='collapse',
+                                href='#{}'.format(label),
+                                inner='{} (n={})'.format(category, len(li)),
+                            ),
+                        ),
+                    ),
+                    HTML.div(
+                        id_='{}'.format(label),
+                        cls_='panel-collapse collapse',
+                        inner=HTML.ul(
+                            HTML.li,
+                            ul_class='list-group',
+                            li_class='list-group-item',
+                            li_attr="style=\"overflow: auto;\"",
+                        ),
+                    ),
+                ]
+            ),
+        )
 
     @staticmethod
     def panel_group(html):
-        return HTML.div(cls_='panel-group', inner='\n'.join([
-            HTML.panel(label, ground_truth, predictions)
-            for (label, ground_truth), predictions in html.items()]))
+        return HTML.div(
+            cls_='panel-group',
+            inner='\n'.join(
+                [
+                    HTML.panel(label, ground_truth, predictions)
+                    for (label, ground_truth), predictions in html.items()
+                ]
+            ),
+        )
 
     @staticmethod
     def format_div(header, im_name, gif_name):
@@ -146,6 +189,7 @@ class HTML(object):
 
 
 IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm']
+VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mpeg']
 
 
 def is_image_file(filename):
@@ -161,19 +205,68 @@ def is_image_file(filename):
     return any(filename_lower.endswith(ext) for ext in IMG_EXTENSIONS)
 
 
+def is_video_file(filename):
+    """Checks if a file is an video.
+
+    Args:
+        filename (string): path to a file
+
+    Returns:
+        bool: True if the filename ends with a known image extension
+    """
+    filename_lower = filename.lower()
+    return any(filename_lower.endswith(ext) for ext in VIDEO_EXTENSIONS)
+
+
 def make_html_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
+    if isinstance(size, int):
+        size = (size, size)
     print(root)
     filenames = sorted([x for x in os.listdir(root) if is_image_file(x)])
 
     def make_page(filenames, size):
-        html = '\n'.join([
-            HTML.head(),
-            HTML.div(
-                inner='\n'.join([
-                    HTML.img(src=f, style=f'height: {size}px; width: {size}px;')
-                    for f in filenames
-                ])
-            )])
+        html = '\n'.join(
+            [
+                HTML.head(),
+                HTML.div(
+                    inner='\n'.join(
+                        [
+                            HTML.img(
+                                src=f, style=f'height: {size[0]}px; width: {size[1]}px;'
+                            )
+                            for f in filenames
+                        ]
+                    )
+                ),
+            ]
+        )
+        return html
+
+    for i, fnames in enumerate(chunk(filenames, max_per_page)):
+        with open(os.path.join(root, tmpl.format(i)), 'w') as f:
+            f.write(make_page(fnames, size))
+
+
+def make_html_video_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
+    print(root)
+    filenames = sorted([x for x in os.listdir(root) if is_video_file(x)])
+
+    def make_page(filenames, size):
+        html = '\n'.join(
+            [
+                HTML.head(),
+                HTML.div(
+                    inner='\n'.join(
+                        [
+                            HTML.video(
+                                src=f, style=f'height: {size}px; width: {size}px;'
+                            )
+                            for f in filenames
+                        ]
+                    )
+                ),
+            ]
+        )
         return html
 
     for i, fnames in enumerate(chunk(filenames, max_per_page)):
@@ -214,7 +307,7 @@ def class_accuracy(prediction, label):
 def chunk(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        yield l[i : i + n]
 
 
 def sort(arr):
@@ -227,7 +320,9 @@ def format_checkpoint(ckpt_file):
     pth_file += '.pth' if not pth_file.endswith('.pth') else ''
     checkpoint = torch.load(ckpt_file, map_location=lambda storage, loc: storage)
     print(checkpoint.keys())
-    state_dict = {k.replace('module.', ''): v for k, v in checkpoint['state_dict'].items()}
+    state_dict = {
+        k.replace('module.', ''): v for k, v in checkpoint['state_dict'].items()
+    }
     torch.save(state_dict, pth_file)
     hashval = hashsha256(pth_file)[:8]
     name, ext = os.path.splitext(pth_file)
@@ -270,7 +365,7 @@ def func_args(func) -> Collection[str]:
             return func_args(func.func)
         else:
             code = func.__init__.__code__
-    return code.co_varnames[:code.co_argcount]
+    return code.co_varnames[: code.co_argcount]
 
 
 def class_args(cls) -> Collection[str]:
@@ -328,8 +423,7 @@ def autoimport_eval(term):
             mdl = import_module(key)
             # Return an AutoImportDict for any namespace packages
             if hasattr(mdl, '__path__'):  # and not hasattr(mdl, '__file__'):
-                return DictNamespace(
-                    AutoImportDict(wrapped=mdl.__dict__, parent=key))
+                return DictNamespace(AutoImportDict(wrapped=mdl.__dict__, parent=key))
             return mdl
 
     return eval(term, {}, AutoImportDict())
@@ -436,9 +530,10 @@ class WorkerPool(object):
         original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         active_pools[id(self)] = self
         self.queue = Queue(maxsize=(process_count * 3))
-        self.processes = None   # Initialize before trying to construct workers
-        self.processes = [worker(i, process_count, self.queue, initargs)
-                          for i in range(process_count)]
+        self.processes = None  # Initialize before trying to construct workers
+        self.processes = [
+            worker(i, process_count, self.queue, initargs) for i in range(process_count)
+        ]
         for p in self.processes:
             p.start()
         # The main process should handle ctrl-C.  Restore this now.
@@ -517,7 +612,7 @@ class FileLock(object):
         compatible as it doesn't rely on msvcrt or fcntl for the locking.
     """
 
-    def __init__(self, file_name, timeout=10, delay=.05, run_once=False):
+    def __init__(self, file_name, timeout=10, delay=0.05, run_once=False):
         """ Prepare the file locker. Specify the file to lock and optionally
             the maximum timeout and the delay between each attempt to lock.
         """
@@ -554,7 +649,9 @@ class FileLock(object):
                 if e.errno != errno.EEXIST:
                     raise
                 if self.timeout is None:
-                    raise FileLockException("Could not acquire lock on {}".format(self.file_name))
+                    raise FileLockException(
+                        "Could not acquire lock on {}".format(self.file_name)
+                    )
                 if (time.time() - start_time) >= self.timeout:
                     raise FileLockException("Timeout occured.")
                 time.sleep(self.delay)
@@ -594,13 +691,45 @@ class FileLock(object):
 
     def mark_done(self):
         with open(self.donefile, 'w') as f:
-            f.write('Done by %d@%s %s at %s' %
-                    (os.getpid(), socket.gethostname(),
-                     os.getenv('STY', ''),
-                     time.strftime('%c')))
+            f.write(
+                'Done by %d@%s %s at %s'
+                % (
+                    os.getpid(),
+                    socket.gethostname(),
+                    os.getenv('STY', ''),
+                    time.strftime('%c'),
+                )
+            )
 
 
 def run_once(filename, func, *args, **kwargs):
     with contextlib.suppress(FileLockException):
         with FileLock(filename, timeout=0.5, run_once=True):
             return func(*args, **kwargs)
+
+
+def _pmap(func, iterable, num_workers=None, pname='map'):
+    num_workers = cpu_count() if num_workers is None else num_workers
+    with Pool(num_workers) as pool:
+        res = getattr(pool, pname, 'map')(func, iterable)
+        pool.close()
+        pool.join()
+    return res
+
+
+def pmap(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='map')
+
+
+def pimap(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='imap')
+
+
+def pimap_unordered(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='imap_unordered')
+
+
+def async_func(func, args, kwargs=None):
+    kwargs = {} if kwargs is None else kwargs
+    p = Process(target=func, args=args, kwargs=kwargs,)
+    p.start()

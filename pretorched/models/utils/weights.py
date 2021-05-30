@@ -1,8 +1,10 @@
+import logging
+import os
+from collections import OrderedDict
+from typing import Dict
+
 import torch
 import torch.utils.model_zoo as model_zoo
-import os
-import logging
-from collections import OrderedDict
 
 
 def load_state_dict(checkpoint_path, use_ema=False):
@@ -28,6 +30,10 @@ def load_state_dict(checkpoint_path, use_ema=False):
         raise FileNotFoundError()
 
 
+def stip_module_prefix(state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    return {k[7:] if k.startswith('module.') else k: v for k, v in state_dict.items()}
+
+
 def load_checkpoint(model, checkpoint_path, use_ema=False):
     state_dict = load_state_dict(checkpoint_path, use_ema)
     model.load_state_dict(state_dict)
@@ -51,8 +57,12 @@ def resume_checkpoint(model, checkpoint_path):
             if 'epoch' in checkpoint:
                 resume_epoch = checkpoint['epoch']
                 if 'version' in checkpoint and checkpoint['version'] > 1:
-                    resume_epoch += 1  # start at the next epoch, old checkpoints incremented before save
-            logging.info("Loaded checkpoint '{}' (epoch {})".format(checkpoint_path, checkpoint['epoch']))
+                    resume_epoch += (
+                        1  # start at the next epoch, old checkpoints incremented before save
+                    )
+            logging.info(
+                "Loaded checkpoint '{}' (epoch {})".format(checkpoint_path, checkpoint['epoch'])
+            )
         else:
             model.load_state_dict(checkpoint)
             logging.info("Loaded checkpoint '{}'".format(checkpoint_path))
