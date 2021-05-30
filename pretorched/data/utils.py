@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from multiprocessing import Process
+
 # from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing.pool import Pool as Pool
 from typing import List, Union
@@ -261,6 +262,31 @@ def get_info(filename, strict=False):
     }
 
 
+def get_audio_info(filename, strict=False):
+    try:
+        probe = ffmpeg.probe(filename)
+    except ffmpeg.Error as e:
+        print(e.stderr, file=sys.stderr)
+        if strict:
+            sys.exit(1)
+        return {}
+    audio_stream = next(
+        (stream for stream in probe['streams'] if stream['codec_type'] == 'audio'), None
+    )
+    if audio_stream is None:
+        print('No audio stream found', file=sys.stderr)
+        if strict:
+            sys.exit(1)
+        return {}
+
+    return {
+        'sample_rate': int(audio_stream['sample_rate']),
+        'codec_name': audio_stream['codec_name'],
+        'channels': int(audio_stream['num_channels']),
+        'duration': float(audio_stream['duration'])
+    }
+
+
 def get_size(filename):
     info = get_info(filename)
     return info['height'], info['width']
@@ -372,9 +398,7 @@ def array_to_video(images, filename, framerate=30, vcodec='libx264'):
 
 def async_array_to_video(images, filename):
     p = Process(
-        target=array_to_video,
-        args=(images, filename),
-        kwargs={'vcodec': 'libx264'},
+        target=array_to_video, args=(images, filename), kwargs={'vcodec': 'libx264'},
     )
     p.start()
 
