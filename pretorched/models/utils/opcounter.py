@@ -94,6 +94,7 @@ def profile(model, inputs, custom_ops=None, verbose=True):
         nn.UpsamplingBilinear2d: count_upsample,
         nn.UpsamplingNearest2d: count_upsample,
         nn.LocalResponseNorm: zero_ops,
+        nn.Identity: zero_ops,
     }
 
     handler_collection = []
@@ -185,7 +186,7 @@ def profile(model, inputs, custom_ops=None, verbose=True):
         data['Params'].append(m.total_params.item())
         data['Mults'].append(m.total_muls.item())
         data['Ops'].append(m.total_ops.item())
-        data['Time'].append(m._forward_time)
+        data['Time'].append(getattr(m,'_forward_time', 0))
 
     max_len = {k: max(len(str(x)) for x in v + [k]) for k, v in data.items()}
     totals = {k: sum(v) if k in ['Params', 'Mults', 'Ops', 'Time'] else '' for k, v in data.items()}
