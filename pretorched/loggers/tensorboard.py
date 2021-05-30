@@ -43,7 +43,7 @@ class TensorBoardLogger(LoggerBase):
         self._version = version
 
         self.kwargs = kwargs
-        self.history = History()
+        self.history = History(filename=name)
 
     # @rank_zero_only
     @cache
