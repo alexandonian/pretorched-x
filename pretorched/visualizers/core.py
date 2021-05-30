@@ -26,10 +26,10 @@ def visualize_data(data, num_samples=64, figsize=(15, 15), title='Real Images'):
 
 
 def visualize_samples(samples, figsize=(15, 15), title='Samples',
-                      nrow=8, padding=5, normalize=True, scale_each=False, use_plt=False):
+                      nrow=8, padding=5, normalize=True, scale_each=False, use_plt=False, pad_value=0.0):
     # Plot the real images
     im = vutils.make_grid(samples, nrow=nrow, padding=padding,
-                          normalize=normalize, scale_each=scale_each).cpu()
+                          normalize=normalize, scale_each=scale_each, pad_value=pad_value).cpu()
     if use_plt:
         plt.figure(figsize=figsize)
         plt.axis("off")
