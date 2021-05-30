@@ -36,7 +36,7 @@ class VideoRecordDataset(VideoDataset):
         sampler: FrameSampler = _default_sampler(),
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        frame_counter: Optional[Callable[[Path], int]] = None,
+        frame_counter: Optional[Callable[[Union[Path, str]], int]] = None,
     ) -> None:
 
         self.root = root
@@ -58,7 +58,7 @@ class VideoRecordDataset(VideoDataset):
 
     @staticmethod
     def _load_frames(
-        video_file: Path,
+        video_file: Union[Path, str],
         frame_idx: Union[slice, List[slice], List[int]],
     ) -> Iterator[Image]:
         from pretorched.data.readers import default_loader

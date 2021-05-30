@@ -16,8 +16,12 @@ class ImageDataset(data.Dataset):
         self.imgs, self.classes = self._make_dataset()
 
         if len(self.imgs) == 0:
-            raise(RuntimeError("Found 0 files in subfolders of: " + root + "\n"
-                               "Supported extensions are: " + ",".join(self.extensions)))
+            raise (
+                RuntimeError(
+                    "Found 0 files in subfolders of: " + root + "\n"
+                    "Supported extensions are: " + ",".join(self.extensions)
+                )
+            )
 
     def _make_dataset(self):
         imgs = []
@@ -55,15 +59,20 @@ class ImageDataset(data.Dataset):
         fmt_str += '  Number of classes: {}\n'.format(len(self.classes))
         fmt_str += '  Image list: {}\n'.format(self.metafile)
         tmp = '  Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}\n'.format(
+            tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
+        )
         return fmt_str
 
 
 class ImageFolder(ImageDataset):
-
-    def __init__(self, root, metafile, transform=None, target_transform=None, classes=None):
+    def __init__(
+        self, root, metafile, transform=None, target_transform=None, classes=None
+    ):
         self.classes = classes
-        super().__init__(root, metafile, transform=transform, target_transform=target_transform)
+        super().__init__(
+            root, metafile, transform=transform, target_transform=target_transform
+        )
 
     def _make_dataset(self):
         imgs = []
@@ -89,3 +98,34 @@ class ImageFolder(ImageDataset):
         classes = sorted(classes)
         class_to_idx = {c: i for i, c in enumerate(classes)}
         return classes, class_to_idx
+
+
+class ImageDir(ImageDataset):
+
+    extensions = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif', '.JPEG']
+
+    def __init__(self, root, transform=None, target_transform=None, default_target=0):
+        self.root = root
+        self.transform = transform
+        self.target_transform = target_transform
+        self.default_target = default_target
+        self.imgs, self.classes = self._make_dataset()
+
+        if len(self.imgs) == 0:
+            raise (
+                RuntimeError(
+                    "Found 0 files in subfolders of: " + root + "\n"
+                    "Supported extensions are: " + ",".join(self.extensions)
+                )
+            )
+
+    def _make_dataset(self):
+        imgs = []
+        classes = set()
+        for filename in os.listdir(self.root):
+            target = int(self.default_target)
+            path = os.path.join(self.root, filename)
+            if any(path.endswith(ext) for ext in self.extensions):
+                imgs.append((path, target))
+                classes.add(target)
+        return imgs, classes
