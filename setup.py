@@ -38,6 +38,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
     ],
-    install_requires=['torch', 'torchvision', 'munch'],    # Optional
+    install_requires=['torch', 'torchvision'],    # Optional
     packages=find_packages(exclude=['data', 'examples']),  # Required
 )

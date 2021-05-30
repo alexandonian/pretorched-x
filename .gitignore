@@ -110,3 +110,5 @@ ENV/
 pretorched/runners/logs/
 pretorched/runners/plot.ipynb
 pretorched/runners/weights/
+scripts/
+wandb
