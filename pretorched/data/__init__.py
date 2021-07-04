@@ -1,6 +1,13 @@
 from .datasets.image import ImageDataset, ImageFolder, ImageDir
+
 # from .datasets.video import VideoRecordDataset, RecordSet
-from .datasets import VideoRecordDataset, VideoRecordZipDataset, RecordSet, MultiLabelRecordSet, MultiLabelVideoRecord
+from .datasets import (
+    VideoRecordDataset,
+    VideoRecordZipDataset,
+    RecordSet,
+    MultiLabelRecordSet,
+    MultiLabelVideoRecord,
+)
 from . import utils
 from .constants import *
 
@@ -10,7 +17,7 @@ __all__ = [
     'VideoRecordDataset',
     'VideoRecordZipDataset',
     'MultiLabelRecordSet',
-    'MultiLabelVideoRecord'
+    'MultiLabelVideoRecord',
     'RecordSet',
-    'utils'
+    'utils',
 ]

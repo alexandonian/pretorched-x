@@ -273,6 +273,7 @@ def get_audio_info(filename, strict=False):
     audio_stream = next(
         (stream for stream in probe['streams'] if stream['codec_type'] == 'audio'), None
     )
+    # print(audio_stream)
     if audio_stream is None:
         print('No audio stream found', file=sys.stderr)
         if strict:
@@ -282,7 +283,7 @@ def get_audio_info(filename, strict=False):
     return {
         'sample_rate': int(audio_stream['sample_rate']),
         'codec_name': audio_stream['codec_name'],
-        'channels': int(audio_stream['num_channels']),
+        'channels': int(audio_stream['channels']),
         'duration': float(audio_stream['duration'])
     }
 
