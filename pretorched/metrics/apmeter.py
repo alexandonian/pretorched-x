@@ -22,6 +22,7 @@ class APMeter:
     def __init__(self):
         super().__init__()
         self.reset()
+        self.fmt = ':.3f'
 
     def reset(self):
         """Resets the meter with empty member variables"""
@@ -55,25 +56,28 @@ class APMeter:
         if output.dim() == 1:
             output = output.view(-1, 1)
         else:
-            assert output.dim() == 2, \
-                'wrong output size (should be 1D or 2D with one column \
+            assert (
+                output.dim() == 2
+            ), 'wrong output size (should be 1D or 2D with one column \
                 per class)'
         if target.dim() == 1:
             target = target.view(-1, 1)
         else:
-            assert target.dim() == 2, \
-                'wrong target size (should be 1D or 2D with one column \
+            assert (
+                target.dim() == 2
+            ), 'wrong target size (should be 1D or 2D with one column \
                 per class)'
         if weight is not None:
             assert weight.dim() == 1, 'Weight dimension should be 1'
-            assert weight.numel() == target.size(0), \
-                'Weight dimension 1 should be the same as that of target'
+            assert weight.numel() == target.size(
+                0
+            ), 'Weight dimension 1 should be the same as that of target'
             assert torch.min(weight) >= 0, 'Weight should be non-negative only'
-        assert torch.equal(target**2, target), \
-            'targets should be binary (0 or 1)'
+        assert torch.equal(target ** 2, target), 'targets should be binary (0 or 1)'
         if self.scores.numel() > 0:
-            assert target.size(1) == self.targets.size(1), \
-                'dimensions for output should match previously added examples.'
+            assert target.size(1) == self.targets.size(
+                1
+            ), 'dimensions for output should match previously added examples.'
 
         # make sure storage is of sufficient size
         if self.scores.storage().size() < self.scores.numel() + output.numel():
@@ -136,3 +140,10 @@ class APMeter:
             # compute average precision
             ap[k] = precision[truth.byte()].sum() / max(float(truth.sum()), 1)
         return ap
+
+    def mean_value(self):
+        return torch.mean(self.value()) * 100
+
+    def __str__(self):
+        fmtstr = 'mAP: {' + self.fmt + '}'
+        return fmtstr.format(self.mean_value())
