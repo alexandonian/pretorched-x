@@ -11,9 +11,12 @@ def load_state_dict(checkpoint_path, use_ema=False):
     if checkpoint_path and os.path.isfile(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
         state_dict_key = 'state_dict'
-        if isinstance(checkpoint, dict):
-            if use_ema and 'state_dict_ema' in checkpoint:
-                state_dict_key = 'state_dict_ema'
+        if (
+            isinstance(checkpoint, dict)
+            and use_ema
+            and 'state_dict_ema' in checkpoint
+        ):
+            state_dict_key = 'state_dict_ema'
         if state_dict_key and state_dict_key in checkpoint:
             new_state_dict = OrderedDict()
             for k, v in checkpoint[state_dict_key].items():
@@ -23,14 +26,16 @@ def load_state_dict(checkpoint_path, use_ema=False):
             state_dict = new_state_dict
         else:
             state_dict = checkpoint
-        logging.info("Loaded {} from checkpoint '{}'".format(state_dict_key, checkpoint_path))
+        logging.info(
+            "Loaded {} from checkpoint '{}'".format(state_dict_key, checkpoint_path)
+        )
         return state_dict
     else:
         logging.error("No checkpoint found at '{}'".format(checkpoint_path))
         raise FileNotFoundError()
 
 
-def stip_module_prefix(state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+def strip_module_prefix(state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
     return {k[7:] if k.startswith('module.') else k: v for k, v in state_dict.items()}
 
 
@@ -40,10 +45,10 @@ def load_checkpoint(model, checkpoint_path, use_ema=False):
 
 
 def resume_checkpoint(model, checkpoint_path):
-    other_state = {}
     resume_epoch = None
     if os.path.isfile(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        other_state = {}
         if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
             new_state_dict = OrderedDict()
             for k, v in checkpoint['state_dict'].items():
@@ -57,11 +62,11 @@ def resume_checkpoint(model, checkpoint_path):
             if 'epoch' in checkpoint:
                 resume_epoch = checkpoint['epoch']
                 if 'version' in checkpoint and checkpoint['version'] > 1:
-                    resume_epoch += (
-                        1  # start at the next epoch, old checkpoints incremented before save
-                    )
+                    resume_epoch += 1  # start at the next epoch, old checkpoints incremented before save
             logging.info(
-                "Loaded checkpoint '{}' (epoch {})".format(checkpoint_path, checkpoint['epoch'])
+                "Loaded checkpoint '{}' (epoch {})".format(
+                    checkpoint_path, checkpoint['epoch']
+                )
             )
         else:
             model.load_state_dict(checkpoint)
@@ -72,7 +77,9 @@ def resume_checkpoint(model, checkpoint_path):
         raise FileNotFoundError()
 
 
-def load_pretrained(model, cfg=None, num_classes=1000, in_chans=3, filter_fn=None, strict=True):
+def load_pretrained(
+    model, cfg=None, num_classes=1000, in_chans=3, filter_fn=None, strict=True
+):
     if cfg is None:
         cfg = getattr(model, 'default_cfg')
     if cfg is None or 'url' not in cfg or not cfg['url']:

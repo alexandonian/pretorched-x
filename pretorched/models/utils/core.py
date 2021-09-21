@@ -10,7 +10,6 @@ from torch.nn import Parameter as P
 
 
 class Identity(nn.Module):
-
     def __init__(self):
         super().__init__()
 
@@ -29,10 +28,7 @@ class EMA(object):
 
     def __init__(self, source, target=None, decay=0.9999, start_itr=0):
         self.source = source
-        if target is not None:
-            self.target = target
-        else:
-            self.target = copy.deepcopy(source)
+        self.target = target if target is not None else copy.deepcopy(source)
         self.decay = decay
 
         # Optional parameter indicating what iteration to start the decay at.
@@ -56,12 +52,16 @@ class EMA(object):
             decay = self.decay
         with torch.no_grad():
             for key in self.source_dict:
-                self.target_dict[key].data.copy_(self.target_dict[key].data * decay
-                                                 + self.source_dict[key].data * (1 - decay))
+                self.target_dict[key].data.copy_(
+                    self.target_dict[key].data * decay
+                    + self.source_dict[key].data * (1 - decay)
+                )
 
     def __repr__(self):
-        return (f'Source: {type(self.source).__name__}\n'
-                f'Target: {type(self.target).__name__}')
+        return (
+            f'Source: {type(self.source).__name__}\n'
+            f'Target: {type(self.target).__name__}'
+        )
 
 
 def ortho(model, strength=1e-4, blacklist=[]):
@@ -73,11 +73,12 @@ def ortho(model, strength=1e-4, blacklist=[]):
     with torch.no_grad():
         for param in model.parameters():
             # Only apply this to parameters with at least 2 axes, and not in the blacklist.
-            if len(param.shape) < 2 or any([param is item for item in blacklist]):
+            if len(param.shape) < 2 or any(param is item for item in blacklist):
                 continue
             w = param.view(param.shape[0], -1)
-            grad = (2 * torch.mm(torch.mm(w, w.t())
-                                 * (1. - torch.eye(w.shape[0], device=w.device)), w))
+            grad = 2 * torch.mm(
+                torch.mm(w, w.t()) * (1.0 - torch.eye(w.shape[0], device=w.device)), w
+            )
             param.grad.data += strength * grad.view(param.shape)
 
 
@@ -93,8 +94,9 @@ def default_ortho(model, strength=1e-4, blacklist=[]):
             if len(param.shape) < 2 or param in blacklist:
                 continue
             w = param.view(param.shape[0], -1)
-            grad = (2 * torch.mm(torch.mm(w, w.t())
-                                 - torch.eye(w.shape[0], device=w.device), w))
+            grad = 2 * torch.mm(
+                torch.mm(w, w.t()) - torch.eye(w.shape[0], device=w.device), w
+            )
             param.grad.data += strength * grad.view(param.shape)
 
 
@@ -107,8 +109,13 @@ def hook_sizes(model, inputs, verbose=True) -> Tuple[Any, List[str], List[torch.
         sizes.append(output.shape)
 
     # Get modules and register forward hooks.
-    names, mods = zip(*[(name, p) for name, p in model.named_modules()
-                        if list(p.parameters()) and (not p._modules)])
+    names, mods = zip(
+        *[
+            (name, p)
+            for name, p in model.named_modules()
+            if list(p.parameters()) and (not p._modules)
+        ]
+    )
     for m in mods:
         m.register_forward_hook(hook_output_size)
 
@@ -130,7 +137,6 @@ def hook_sizes(model, inputs, verbose=True) -> Tuple[Any, List[str], List[torch.
 
 
 class SizeEstimator(object):
-
     def __init__(self, model, input_size=(1, 1, 32, 32), bits=32):
         """Estimates the size of PyTorch models in memory for a given input size."""
         self.model = model
@@ -146,8 +152,8 @@ class SizeEstimator(object):
         for i in range(1, len(mods)):
             m = mods[i]
             p = list(m.parameters())
-            for j in range(len(p)):
-                sizes.append(np.array(p[j].size()))
+            for item in p:
+                sizes.append(np.array(item.size()))
 
         self.param_sizes = sizes
         return
@@ -184,7 +190,7 @@ class SizeEstimator(object):
             bits = np.prod(np.array(s)) * self.bits
             total_bits += bits
         # multiply by 2 for both forward AND backward
-        self.forward_backward_bits = (total_bits * 2)
+        self.forward_backward_bits = total_bits * 2
         return
 
     def calc_input_bits(self):
@@ -201,7 +207,7 @@ class SizeEstimator(object):
         self.calc_input_bits()
         total = self.param_bits + self.forward_backward_bits + self.input_bits
 
-        total_megabytes = (total / 8) / (1024**2)
+        total_megabytes = (total / 8) / (1024 ** 2)
         return total_megabytes, total
 
 
@@ -242,7 +248,9 @@ class IntermediateLayerGetter(nn.ModuleDict):
     """
 
     def __init__(self, model, return_layers):
-        if not set(return_layers).issubset([name for name, _ in model.named_children()]):
+        if not set(return_layers).issubset(
+            [name for name, _ in model.named_children()]
+        ):
             raise ValueError("return_layers are not present in model")
 
         orig_return_layers = return_layers
@@ -281,7 +289,7 @@ def elastic_forward(model, input):
     #         o = f(xc).detach().cpu()
     #         out.append(o)
     #     return torch.cat(out)
-        # return torch.cat([f(xc.contiguous()) for xc in torch.chunk(x, chunk_size)])
+    # return torch.cat([f(xc.contiguous()) for xc in torch.chunk(x, chunk_size)])
 
     cs, fit = 1, False
     while not fit:
@@ -303,14 +311,16 @@ def elastic_forward(model, input):
 
 
 class Normalize(nn.Module):
-    def __init__(self, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
-                 shape=(1, -1, 1, 1, 1)):
+    def __init__(
+        self,
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
+        shape=(1, -1, 1, 1, 1),
+    ):
         super().__init__()
         self.shape = shape
-        self.mean = P(torch.tensor(mean).view(shape),
-                      requires_grad=False)
-        self.std = P(torch.tensor(std).view(shape),
-                     requires_grad=False)
+        self.mean = P(torch.tensor(mean).view(shape), requires_grad=False)
+        self.std = P(torch.tensor(std).view(shape), requires_grad=False)
 
     def forward(self, x):
         return (x - self.mean) / self.std

@@ -7,7 +7,7 @@ from .weights import (
     load_pretrained,
     load_state_dict,
     resume_checkpoint,
-    stip_module_prefix,
+    strip_module_prefix,
 )
 
 __all__ = [

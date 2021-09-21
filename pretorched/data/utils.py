@@ -284,7 +284,7 @@ def get_audio_info(filename, strict=False):
         'sample_rate': int(audio_stream['sample_rate']),
         'codec_name': audio_stream['codec_name'],
         'channels': int(audio_stream['channels']),
-        'duration': float(audio_stream['duration'])
+        'duration': float(audio_stream['duration']),
     }
 
 
@@ -321,7 +321,7 @@ def make_grid(tensor, nrow=8):
             if k >= nmaps:
                 break
             grid[y * height : (y + 1) * height, x * width : (x + 1) * width] = tensor[k]
-            k = k + 1
+            k += 1
     return grid
 
 
@@ -382,6 +382,7 @@ def array_to_video(images, filename, framerate=30, vcodec='libx264'):
     if not isinstance(images, np.ndarray):
         images = np.asarray(images)
     n, height, width, channels = images.shape
+    print(n, height, width, channels)
     process = (
         ffmpeg.input(
             'pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height)
@@ -399,16 +400,18 @@ def array_to_video(images, filename, framerate=30, vcodec='libx264'):
 
 def async_array_to_video(images, filename):
     p = Process(
-        target=array_to_video, args=(images, filename), kwargs={'vcodec': 'libx264'},
+        target=array_to_video,
+        args=(images, filename),
+        kwargs={'vcodec': 'libx264'},
     )
     p.start()
 
 
-def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
+def downsample_video(input, output, smallest_side_size=320, vcodec='libx264') -> None:
     size = get_size(input)
     scale = smallest_side_size / min(*size)
     h, w = map(int, [((s * scale) // 2) * 2 for s in size])
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+    os.makedirs(os.path.dirname(output) or '.', exist_ok=True)
     (
         ffmpeg.input(input)
         .filter('scale', w, h)
@@ -418,8 +421,12 @@ def downsample_video(input, output, smallest_side_size=320, vcodec='libx264'):
     )
 
 
-def encode_video(filename, outname, vcodec='libx264', crf=18, scale=1.0, fps=None):
-    outkwargs = {'crf': crf, 'vcodec': vcodec}
+def encode_video(filename, outname, vcodec='libx264', crf=None, scale=1.0, fps=None):
+    outkwargs = {}
+    if crf is not None:
+        outkwargs['crf'] = crf
+    if vcodec is not None:
+        outkwargs['vcodec'] = vcodec
     stream = ffmpeg.input(filename)
     if (scale is not None) and (scale != 1.0):
         stream = ffmpeg.filter(stream, 'scale', f'{scale}*iw', f'{scale}*ih')

@@ -10,9 +10,9 @@ BATCH_SIZE = 32
 
 SKIP_VIDEO = False
 SKIP_VIDEO_DATASET = False
-SKIP_VIDEO_ZIP_DATASET = False
+SKIP_VIDEO_ZIP_DATASET = True
 SKIP_DATASET = False
-SKIP_DATALOADER = True
+SKIP_DATALOADER = False
 
 
 @pytest.mark.parametrize('name, split, size, dataset_type', [
@@ -149,6 +149,7 @@ def test_get_video_dataloader(name, split, segment_count, size, dataset_type, re
 
         assert y.shape == torch.Size((BATCH_SIZE,))
         assert x.shape == torch.Size((BATCH_SIZE, 3, segment_count, size, size))
+
 
 @pytest.mark.skipif(SKIP_DATALOADER, reason='Not needed.')
 @pytest.mark.parametrize('name, split, segment_count, size, dataset_type, record_set_type', [

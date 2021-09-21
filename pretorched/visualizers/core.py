@@ -61,7 +61,7 @@ def imshow(image, format='png', jpeg_fallback=True):
 
 
 def smooth_data(data, amount=1.0):
-    if not amount > 0.0:
+    if amount <= 0.0:
         return data
     data_len = len(data)
     ksize = int(amount * (data_len // 2))
@@ -144,7 +144,7 @@ def make_grid(tensor, nrow=8):
             if k >= nmaps:
                 break
             grid[y * height : (y + 1) * height, x * width : (x + 1) * width] = tensor[k]
-            k = k + 1
+            k += 1
     return grid
 
 
