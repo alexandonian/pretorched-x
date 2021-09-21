@@ -19,16 +19,14 @@ def get_optimizer(model, optimizer_name='SGD', lr=0.001, **kwargs):
     optim_func = getattr(optim, optimizer_name)
     func_kwargs, _ = utils.split_kwargs_by_func(optim_func, kwargs)
     optim_kwargs = {**cfg.optimizer_defaults.get(optimizer_name, {}), **func_kwargs}
-    optimizer = optim_func(model.parameters(), lr=lr, **optim_kwargs)
-    return optimizer
+    return optim_func(model.parameters(), lr=lr, **optim_kwargs)
 
 
 def get_scheduler(optimizer, scheduler_name='CosineAnnealingLR', **kwargs):
     sched_func = getattr(torch.optim.lr_scheduler, scheduler_name)
     func_kwargs, _ = utils.split_kwargs_by_func(sched_func, kwargs)
     sched_kwargs = {**cfg.scheduler_defaults.get(scheduler_name, {}), **func_kwargs}
-    scheduler = sched_func(optimizer, **sched_kwargs)
-    return scheduler
+    return sched_func(optimizer, **sched_kwargs)
 
 
 def init_weights(model, init_name='ortho'):
@@ -142,7 +140,7 @@ def get_video_transform(
             [transforms.ResizeVideo(resolution), transforms.CenterCropVideo(size)]
         ),
     }.get(split, 'val')
-    transform = transforms.Compose(
+    return transforms.Compose(
         [
             cropping,
             transforms.CollectFrames(),
@@ -150,7 +148,6 @@ def get_video_transform(
             norm if normalize else transforms.IdentityTransform(),
         ]
     )
-    return transform
 
 
 def get_dataset(
@@ -216,8 +213,7 @@ def get_video_dataset(
         **kwargs,
     }
     dataset_kwargs, _ = utils.split_kwargs_by_func(Dataset, full_kwargs)
-    dataset = Dataset(**dataset_kwargs)
-    return dataset
+    return Dataset(**dataset_kwargs)
 
 
 def get_video_dataloader(
@@ -400,7 +396,7 @@ def get_dataloaders(
     splits=['train', 'val'],
     **kwargs,
 ):
-    dataloaders = {
+    return {
         split: get_dataloader(
             name,
             data_root=root,
@@ -419,7 +415,6 @@ def get_dataloaders(
         )
         for split in splits
     }
-    return dataloaders
 
 
 def get_rank(group=None):
@@ -487,35 +482,34 @@ def resume_checkpoint(
     scheduler_key='scheduler',
 ):
     # TODO: FINISH THIS
-    if os.path.isfile(checkpoint_path):
-        print(f"=> loading checkpoint '{checkpoint_path}'")
-        checkpoint = torch.load(checkpoint_path, map_location='cpu')
-        args.start_epoch = checkpoint['epoch']
-        best_acc1 = checkpoint['best_acc1']
-        if model is not None:
-            model.load_state_dict(checkpoint[model_key])
-        if optimizer is not None:
-            try:
-                optimizer.load_state_dict(checkpoint[optimizer_key])
-            except ValueError(f'Could not find optimizer state'):
-                pass
-        try:
-            scheduler.load_state_dict(checkpoint[scheduler_key])
-        except Exception:
-            print(f'Could not load scheduler state_dict for {args.scheduler}')
-            try:
-                scheduler.step(checkpoint['epoch'])
-                print(f'setting scheduler learning rate to: {scheduler.get_lr()}')
-            except Exception:
-                pass
-
-        print(
-            "=> loaded checkpoint '{}' (epoch {})".format(
-                checkpoint_path, checkpoint['epoch']
-            )
-        )
-    else:
+    if not os.path.isfile(checkpoint_path):
         raise FileNotFoundError(f"=> no checkpoint found at '{checkpoint_path}'")
+    print(f"=> loading checkpoint '{checkpoint_path}'")
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    args.start_epoch = checkpoint['epoch']
+    best_acc1 = checkpoint['best_acc1']
+    if model is not None:
+        model.load_state_dict(checkpoint[model_key])
+    if optimizer is not None:
+        try:
+            optimizer.load_state_dict(checkpoint[optimizer_key])
+        except ValueError('Could not find optimizer state'):
+            pass
+    try:
+        scheduler.load_state_dict(checkpoint[scheduler_key])
+    except Exception:
+        print(f'Could not load scheduler state_dict for {args.scheduler}')
+        try:
+            scheduler.step(checkpoint['epoch'])
+            print(f'setting scheduler learning rate to: {scheduler.get_lr()}')
+        except Exception:
+            pass
+
+    print(
+        "=> loaded checkpoint '{}' (epoch {})".format(
+            checkpoint_path, checkpoint['epoch']
+        )
+    )
 
 
 def featurize(

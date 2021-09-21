@@ -1,4 +1,3 @@
-
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
@@ -69,7 +68,6 @@ class MovingAverage(object):
     @property
     def relative_change(self):
         if None not in [self.val, self.previous]:
-            relative_change = (self.previous - self.val) / self.previous
-            return relative_change
+            return (self.previous - self.val) / self.previous
         else:
             return None
