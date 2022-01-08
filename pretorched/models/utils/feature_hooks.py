@@ -6,7 +6,7 @@ class FeatureHooks:
 
     def __init__(self, hooks, named_modules):
         # setup feature hooks
-        modules = {k: v for k, v in named_modules}
+        modules = dict(named_modules)
         for h in hooks:
             hook_name = h['name']
             m = modules[hook_name]

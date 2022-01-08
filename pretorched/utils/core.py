@@ -13,6 +13,7 @@ import time
 from collections import defaultdict
 from importlib import import_module
 from multiprocessing import Process, Queue, cpu_count, Pool
+import multiprocessing.pool
 from operator import itemgetter
 from typing import Collection
 
@@ -231,9 +232,7 @@ def make_html_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page=100):
                 HTML.div(
                     inner='\n'.join(
                         [
-                            HTML.img(
-                                src=f, style=f'height: {size[0]}px; width: {size[1]}px;'
-                            )
+                            HTML.img(src=f, style=f'height: {size[0]}px; width: {size[1]}px;')
                             for f in filenames
                         ]
                     )
@@ -258,9 +257,7 @@ def make_html_video_gallery(root, tmpl='$gallery{}.html', size=256, max_per_page
                 HTML.div(
                     inner='\n'.join(
                         [
-                            HTML.video(
-                                src=f, style=f'height: {size}px; width: {size}px;'
-                            )
+                            HTML.video(src=f, style=f'height: {size}px; width: {size}px;')
                             for f in filenames
                         ]
                     )
@@ -320,9 +317,7 @@ def format_checkpoint(ckpt_file):
     pth_file += '.pth' if not pth_file.endswith('.pth') else ''
     checkpoint = torch.load(ckpt_file, map_location=lambda storage, loc: storage)
     print(checkpoint.keys())
-    state_dict = {
-        k.replace('module.', ''): v for k, v in checkpoint['state_dict'].items()
-    }
+    state_dict = {k.replace('module.', ''): v for k, v in checkpoint['state_dict'].items()}
     torch.save(state_dict, pth_file)
     hashval = hashsha256(pth_file)[:8]
     name, ext = os.path.splitext(pth_file)
@@ -707,9 +702,10 @@ def run_once(filename, func, *args, **kwargs):
             return func(*args, **kwargs)
 
 
-def _pmap(func, iterable, num_workers=None, pname='map'):
+def _pmap(func, iterable, num_workers=None, pname='map', ptype='Pool', progress=False):
     num_workers = cpu_count() if num_workers is None else num_workers
-    with Pool(num_workers) as pool:
+    pool_class = getattr(multiprocessing.pool, ptype, 'Pool')
+    with pool_class(num_workers) as pool:
         res = getattr(pool, pname, 'map')(func, iterable)
         pool.close()
         pool.join()
@@ -726,6 +722,18 @@ def pimap(func, iterable, num_workers=None):
 
 def pimap_unordered(func, iterable, num_workers=None):
     return _pmap(func, iterable, num_workers=num_workers, pname='imap_unordered')
+
+
+def thread_pmap(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='map', ptype='ThreadPool')
+
+
+def thread_pimap(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='imap', ptype='ThreadPool')
+
+
+def thread_pimap_unordered(func, iterable, num_workers=None):
+    return _pmap(func, iterable, num_workers=num_workers, pname='imap_unordered', ptype='ThreadPool')
 
 
 def async_func(func, args, kwargs=None):

@@ -2,3 +2,5 @@ torch
 torchvision
 munch
 tqdm
+tensorboard
+ray

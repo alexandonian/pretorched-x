@@ -97,7 +97,7 @@ class ProfileRun:
             return self.gpu_powers(index)[gpu_index]
 
     def total_power(self):
-        return sum([self.power(i) for i in range(len(self))]) / self.total_time()
+        return sum(self.power(i) for i in range(len(self))) / self.total_time()
 
     def total_gpu_power(self, gpu_index=None):
         return np.sum(self.gpu_power_profile(gpu_index=gpu_index)) / self.total_time()
