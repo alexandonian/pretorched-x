@@ -112,7 +112,10 @@ News:
 
 3. `git clone https://github.com/alexandonian/pretorched-x.git`
 4. `cd pretorched-x`
-5. `python setup.py install`
+4. `git checkout dev`
+5. `pip install -r requirements.txt`
+6. `pip install -e .`
+
 
 
 ## Quick examples
